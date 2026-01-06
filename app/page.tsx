@@ -221,11 +221,6 @@ export default function Home() {
     const updatedControlContents = [...(item.controlContents || []), newControlContent];
     updateEvaluationItem(itemId, { controlContents: updatedControlContents });
     setItems(getEvaluationItems());
-
-    // 作成したデータを編集モードで開く
-    setEditingControlContentItemId(itemId);
-    setEditingControlContent(newControlContent);
-    setShowControlContentForm(true);
   };
 
   const handleEditControlContent = (itemId: string, controlContent: ControlContent) => {
@@ -284,8 +279,44 @@ export default function Home() {
 
 
   const handleEditSupplementalInfo = (itemId: string) => {
-    setEditingSupplementalInfoItemId(itemId);
-    setShowSupplementalInfoForm(true);
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+
+    // 既に補足情報がある場合は編集モードで開く
+    if (item.supplementalInfo) {
+      setEditingSupplementalInfoItemId(itemId);
+      setShowSupplementalInfoForm(true);
+      return;
+    }
+
+    // テンプレートを取得
+    const templates = getSupplementalInfoTemplates();
+    if (templates.length === 0) {
+      alert('補足情報テンプレートがありません。先にテンプレートを作成してください。');
+      return;
+    }
+
+    // テンプレートからデータを作成（1つしかない場合はそれを使用）
+    const template = templates[0];
+    const now = new Date().toISOString();
+    const newFields: SupplementalInfoField[] = (template.fields || []).map(fieldTemplate => ({
+      id: crypto.randomUUID(),
+      label: fieldTemplate.label,
+      type: fieldTemplate.type,
+      value: undefined,
+      createdAt: now,
+      updatedAt: now,
+    }));
+
+    // データを作成して保存
+    const newSupplementalInfo: SupplementalInfo = {
+      fields: newFields,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    updateEvaluationItem(itemId, { supplementalInfo: newSupplementalInfo });
+    setItems(getEvaluationItems());
   };
 
   const handleCreateOrUpdateSupplementalInfo = (data: { fields: SupplementalInfoField[] }) => {
