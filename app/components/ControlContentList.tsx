@@ -21,9 +21,9 @@ export default function ControlContentList({ controlContents, onEdit, onDelete }
   // すべての行でフィールド構成が同じであることを前提としています
   const sampleFields = controlContents[0].fields || [];
   const calculateWidth = (type: string) => {
-    if (type === 'evaluation') return 400;
+    if (type === 'evaluation') return 300;
     if (type === 'file') return 200;
-    return 250;
+    return 450;
   };
 
   const actionColumnWidth = 100; // 操作列の幅
