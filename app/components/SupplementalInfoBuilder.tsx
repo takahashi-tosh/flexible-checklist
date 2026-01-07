@@ -164,7 +164,7 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
         {templates.length === 0 ? (
           <div className="text-center py-8 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 rounded-lg">
             <p className="mb-4">テンプレートがありません。</p>
-            <p className="text-sm mb-4">補足情報テンプレート管理画面でテンプレートを作成してください。</p>
+            <p className="text-sm mb-4">評価項目の補足管理画面でテンプレートを作成してください。</p>
             <button
               type="button"
               onClick={onCancel}

@@ -84,6 +84,14 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
                     {item.name}
                   </h3>
                   <div className="flex gap-2">
+                    {(!item.supplementalInfo || !item.supplementalInfo.fields || item.supplementalInfo.fields.length === 0) && onEditSupplementalInfo && (
+                      <button
+                        onClick={() => onEditSupplementalInfo(item.id)}
+                        className="px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        + 補足情報を追加
+                      </button>
+                    )}
                     <button
                       onClick={() => onEdit(item)}
                       className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
@@ -197,16 +205,6 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
                         </div>
                       )}
                     </div>
-                  </div>
-                )}
-                {(!item.supplementalInfo || !item.supplementalInfo.fields || item.supplementalInfo.fields.length === 0) && onEditSupplementalInfo && (
-                  <div className="mt-4 mb-4">
-                    <button
-                      onClick={() => onEditSupplementalInfo(item.id)}
-                      className="px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                    >
-                      + 補足情報を追加
-                    </button>
                   </div>
                 )}
                 

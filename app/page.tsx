@@ -55,7 +55,7 @@ export default function Home() {
     setControlContentTemplates(controlTemplates);
   }, []);
 
-  // 補足情報テンプレートビューに切り替えたときに、テンプレートが存在する場合は自動的に編集モードで表示
+  // 評価項目の補足ビューに切り替えたときに、テンプレートが存在する場合は自動的に編集モードで表示
   useEffect(() => {
     if (viewMode === 'supplemental-info-templates' && !showForm) {
       const templates = getSupplementalInfoTemplates();
@@ -292,7 +292,7 @@ export default function Home() {
     // テンプレートを取得
     const templates = getSupplementalInfoTemplates();
     if (templates.length === 0) {
-      alert('補足情報テンプレートがありません。先にテンプレートを作成してください。');
+      alert('評価項目の補足がありません。先にテンプレートを作成してください。');
       return;
     }
 
@@ -444,6 +444,33 @@ export default function Home() {
           selectedCategoryId={selectedCategoryId}
           onSelectCategory={setSelectedCategoryId}
           refreshTrigger={sidebarRefreshTrigger}
+          onSelectView={(view) => {
+            setViewMode(view);
+            setEditingItem(null);
+            setEditingCategory(null);
+            if (view === 'supplemental-info-templates') {
+              const templates = getSupplementalInfoTemplates();
+              setSupplementalInfoTemplates(templates);
+              if (templates.length > 0) {
+                setEditingSupplementalInfoTemplate(templates[0]);
+                setShowForm(true);
+              } else {
+                setEditingSupplementalInfoTemplate(null);
+                setShowForm(false);
+              }
+            } else if (view === 'control-content-templates') {
+              const templates = getControlContentTemplates();
+              setControlContentTemplates(templates);
+              if (templates.length > 0) {
+                setEditingControlContentTemplate(templates[0]);
+                setShowForm(true);
+              } else {
+                setEditingControlContentTemplate(null);
+                setShowForm(false);
+              }
+            }
+          }}
+          currentView={viewMode}
         />
       )}
 
@@ -483,54 +510,6 @@ export default function Home() {
                 }`}
               >
                 カテゴリ管理
-              </button>
-              <button
-                onClick={() => {
-                  setViewMode('supplemental-info-templates');
-                  setEditingItem(null);
-                  setEditingCategory(null);
-                  const templates = getSupplementalInfoTemplates();
-                  setSupplementalInfoTemplates(templates);
-                  // テンプレートが存在する場合は自動的に編集モードで表示
-                  if (templates.length > 0) {
-                    setEditingSupplementalInfoTemplate(templates[0]);
-                    setShowForm(true);
-                  } else {
-                    setEditingSupplementalInfoTemplate(null);
-                    setShowForm(false);
-                  }
-                }}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  viewMode === 'supplemental-info-templates'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                補足情報テンプレート
-              </button>
-              <button
-                onClick={() => {
-                  setViewMode('control-content-templates');
-                  setEditingItem(null);
-                  setEditingCategory(null);
-                  const templates = getControlContentTemplates();
-                  setControlContentTemplates(templates);
-                  // テンプレートが存在する場合は自動的に編集モードで表示
-                  if (templates.length > 0) {
-                    setEditingControlContentTemplate(templates[0]);
-                    setShowForm(true);
-                  } else {
-                    setEditingControlContentTemplate(null);
-                    setShowForm(false);
-                  }
-                }}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  viewMode === 'control-content-templates'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                統制内容テンプレート
               </button>
             </div>
             {viewMode === 'items' && !showForm && !showControlContentForm && !showSupplementalInfoForm && (
@@ -691,11 +670,11 @@ export default function Home() {
             </div>
           )}
 
-          {/* 補足情報テンプレート管理ビュー */}
+          {/* 評価項目の補足管理ビュー */}
           {viewMode === 'supplemental-info-templates' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
               <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                補足情報テンプレート管理
+                評価項目の補足管理
               </h1>
 
               {showForm ? (
@@ -719,7 +698,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-                  補足情報テンプレートがありません。新規作成してください。
+                  評価項目の補足がありません。新規作成してください。
                 </div>
               )}
             </div>
@@ -729,7 +708,7 @@ export default function Home() {
           {viewMode === 'control-content-templates' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
               <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                統制内容テンプレート管理
+                統制内容管理
               </h1>
 
               {showForm ? (

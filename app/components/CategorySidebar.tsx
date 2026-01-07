@@ -9,9 +9,11 @@ interface CategorySidebarProps {
   selectedCategoryId: string | null;
   onSelectCategory: (categoryId: string | null) => void;
   refreshTrigger?: number;
+  onSelectView?: (view: 'supplemental-info-templates' | 'control-content-templates') => void;
+  currentView?: string;
 }
 
-export default function CategorySidebar({ selectedCategoryId, onSelectCategory, refreshTrigger }: CategorySidebarProps) {
+export default function CategorySidebar({ selectedCategoryId, onSelectCategory, refreshTrigger, onSelectView, currentView }: CategorySidebarProps) {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
@@ -51,7 +53,13 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
           <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">評価項目リスト</h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">smoove poc</h2>
+        </div>
+      </div>
+
+      <div className="p-2">
+        <div className="w-full text-left font-bold px-1 py-2 rounded-md text-sm transition-colors">
+          評価項目
         </div>
       </div>
       
@@ -153,6 +161,34 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="p-2">
+        <div className="w-full text-left px-1 py-2 font-bold rounded-md text-sm transition-colors">
+          カスタムフォーム
+        </div>
+        <div className="space-y-1 mt-2">
+          <button
+            onClick={() => onSelectView?.('supplemental-info-templates')}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              currentView === 'supplemental-info-templates'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            評価項目の補足
+          </button>
+          <button
+            onClick={() => onSelectView?.('control-content-templates')}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              currentView === 'control-content-templates'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            統制内容
+          </button>
+        </div>
       </div>
     </div>
   );
