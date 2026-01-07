@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { SupplementalInfoTemplate, SupplementalInfoFieldTemplate } from '../types/supplemental-info-template';
 import { FieldType } from '../types/supplemental-info';
+import { DndContext, DragEndEvent, DragOverlay, closestCenter, DragStartEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
+import SupplementalInfoFieldTypePalette from './SupplementalInfoFieldTypePalette';
+import SupplementalInfoFieldCanvas from './SupplementalInfoFieldCanvas';
 
 interface SupplementalInfoTemplateFormProps {
   template?: SupplementalInfoTemplate | null;
@@ -11,68 +15,97 @@ interface SupplementalInfoTemplateFormProps {
 }
 
 export default function SupplementalInfoTemplateForm({ template, onSubmit, onCancel }: SupplementalInfoTemplateFormProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [fields, setFields] = useState<Omit<SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>[]>([]);
-  const [editingFieldIndex, setEditingFieldIndex] = useState<number | null>(null);
-  const [editingField, setEditingField] = useState<{ label: string; type: FieldType; usage?: string } | null>(null);
+  const [name] = useState('補足情報');
+  const [description, setDescription] = useState(template?.description || '');
+  const [fields, setFields] = useState<Omit<SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>[]>(
+    template?.fields?.map(f => ({ label: f.label, type: f.type, usage: f.usage })) || []
+  );
+  const [expandedFields, setExpandedFields] = useState<Set<number>>(
+    new Set(template?.fields?.map((_, index) => index) || [])
+  );
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   useEffect(() => {
-    // 名前は常に「補足情報」で固定
-    setName('補足情報');
     if (template) {
+      // eslint-disable-next-line react-compiler/react-compiler
       setDescription(template.description || '');
-      setFields((template.fields || []).map(f => ({ label: f.label, type: f.type, usage: f.usage })));
-    } else {
-      setDescription('');
-      setFields([]);
+      const loadedFields = (template.fields || []).map(f => ({ label: f.label, type: f.type, usage: f.usage }));
+      // eslint-disable-next-line react-compiler/react-compiler
+      setFields(loadedFields);
+      // eslint-disable-next-line react-compiler/react-compiler
+      setExpandedFields(new Set(loadedFields.map((_, index) => index)));
     }
-    setEditingFieldIndex(null);
-    setEditingField(null);
   }, [template]);
 
-  const handleAddField = () => {
-    setEditingField({ label: '', type: 'text', usage: '' });
-    setEditingFieldIndex(null);
+  const handleAddField = (type: FieldType) => {
+    const newField: Omit<SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
+      label: '',
+      type,
+      usage: undefined,
+    };
+    const newFields = [...fields, newField];
+    setFields(newFields);
+    // 新規追加したフィールドを展開状態にする
+    setExpandedFields(prev => new Set([...prev, fields.length]));
   };
 
-  const handleEditField = (index: number) => {
-    setEditingField({ ...fields[index] });
-    setEditingFieldIndex(index);
+  const handleUpdateField = (index: number, updates: Partial<Omit<SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>>) => {
+    setFields(fields.map((f, i) => i === index ? { ...f, ...updates } : f));
   };
 
-  const handleDeleteField = (index: number) => {
+  const handleRemoveField = (index: number) => {
     setFields(fields.filter((_, i) => i !== index));
+    const newExpandedFields = new Set(expandedFields);
+    newExpandedFields.delete(index);
+    setExpandedFields(newExpandedFields);
   };
 
-  const handleFieldSubmit = () => {
-    if (!editingField || !editingField.label.trim()) {
-      alert('ラベルを入力してください');
+  const handleToggleExpand = (index: number) => {
+    setExpandedFields(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveDragId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragId(null);
+
+    if (!over) return;
+
+    // パレットからキャンバスへのドロップ
+    if (active.data.current?.source === 'palette' && over.id === 'supplemental-info-field-canvas') {
+      const fieldType = active.data.current.type as FieldType;
+      handleAddField(fieldType);
       return;
     }
 
-    const newField = {
-      label: editingField.label.trim(),
-      type: editingField.type,
-      usage: editingField.usage?.trim() || undefined,
-    };
-
-    if (editingFieldIndex !== null) {
-      // 更新
-      setFields(fields.map((f, i) => i === editingFieldIndex ? newField : f));
-    } else {
-      // 新規追加
-      setFields([...fields, newField]);
+    // キャンバス内での並び替え
+    if (active.id !== over.id && typeof active.data.current?.index === 'number' && typeof over.data.current?.index === 'number') {
+      const oldIndex = active.data.current.index;
+      const newIndex = over.data.current.index;
+      setFields(arrayMove(fields, oldIndex, newIndex));
     }
-
-    setEditingField(null);
-    setEditingFieldIndex(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (fields.length === 0) {
       alert('フィールドを少なくとも1つ追加してください');
+      return;
+    }
+    // 空のラベルがないかチェック
+    if (fields.some(f => !f.label.trim())) {
+      alert('すべてのフィールドにラベルを入力してください');
       return;
     }
     onSubmit({
@@ -82,190 +115,85 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
     });
   };
 
-  if (editingField !== null) {
-    return (
-      <div>
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-          {editingFieldIndex !== null ? 'フィールドを編集' : 'フィールドを追加'}
-        </h3>
-        <form onSubmit={(e) => { e.preventDefault(); handleFieldSubmit(); }} className="space-y-4">
-          <div>
-            <label htmlFor="fieldLabel" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              ラベル <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="fieldLabel"
-              value={editingField.label}
-              onChange={(e) => setEditingField({ ...editingField, label: e.target.value })}
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              placeholder="ラベルを入力"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="fieldType" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              タイプ <span className="text-red-500">*</span>
-            </label>
-            <select
-              id="fieldType"
-              value={editingField.type}
-              onChange={(e) => setEditingField({ ...editingField, type: e.target.value as FieldType })}
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-            >
-              <option value="text">テキストフィールド</option>
-              <option value="file">ファイル</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="fieldUsage" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              用途
-            </label>
-            <input
-              type="text"
-              id="fieldUsage"
-              value={editingField.usage || ''}
-              onChange={(e) => setEditingField({ ...editingField, usage: e.target.value })}
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              placeholder="用途を入力（任意）"
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button
-              type="button"
-              onClick={() => {
-                setEditingField(null);
-                setEditingFieldIndex(null);
-              }}
-              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-            >
-              {editingFieldIndex !== null ? '更新' : '追加'}
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          テンプレート名
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          readOnly
-          className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 cursor-not-allowed"
-        />
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          テンプレート名は「補足情報」で固定です
-        </p>
-      </div>
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          説明
-        </label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
-          placeholder="説明を入力（任意）"
-        />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">フィールド</h3>
-          <button
-            type="button"
-            onClick={handleAddField}
-            className="px-3 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-          >
-            + フィールドを追加
-          </button>
+    <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            テンプレート名
+          </label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            readOnly
+            className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 cursor-not-allowed"
+          />
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            テンプレート名は「補足情報」で固定です
+          </p>
         </div>
 
-        {fields.length === 0 ? (
-          <div className="text-center py-8 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 rounded-lg">
-            フィールドがありません。フィールドを追加してください。
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {fields.map((field, index) => (
-              <div
-                key={index}
-                className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 bg-zinc-50 dark:bg-zinc-800"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                        {field.type === 'file' ? 'ファイル' : 'テキストフィールド'}
-                      </span>
-                    </div>
-                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                      {field.label}
-                    </h4>
-                    {field.usage && (
-                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                        用途: {field.usage}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      type="button"
-                      onClick={() => handleEditField(index)}
-                      className="px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                    >
-                      編集
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (confirm('このフィールドを削除しますか？')) {
-                          handleDeleteField(index);
-                        }
-                      }}
-                      className="px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    >
-                      削除
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            説明
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
+            placeholder="説明を入力（任意）"
+          />
+        </div>
 
-      <div className="flex gap-2 justify-end">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-        >
-          キャンセル
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-        >
-          {template ? '更新' : '作成'}
-        </button>
-      </div>
-    </form>
+        <div className="grid grid-cols-12 gap-6">
+          {/* 左側: コンポーネントパレット */}
+          <div className="col-span-3">
+            <SupplementalInfoFieldTypePalette />
+          </div>
+
+          {/* 右側: キャンバス */}
+          <div className="col-span-9">
+            <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+              フィールド構成
+            </h3>
+            <SupplementalInfoFieldCanvas
+              fields={fields}
+              expandedFields={expandedFields}
+              onToggleExpand={handleToggleExpand}
+              onUpdateField={handleUpdateField}
+              onRemoveField={handleRemoveField}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2 justify-end pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+          >
+            キャンセル
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          >
+            {template ? '更新' : '作成'}
+          </button>
+        </div>
+      </form>
+
+      <DragOverlay>
+        {activeDragId ? (
+          <div className="p-4 border-2 border-blue-400 dark:border-blue-500 rounded-lg bg-white dark:bg-zinc-900 shadow-lg opacity-90">
+            ドラッグ中...
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }
 
