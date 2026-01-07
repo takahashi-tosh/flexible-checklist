@@ -18,12 +18,16 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
   const [showFieldForm, setShowFieldForm] = useState(false);
   const [templates, setTemplates] = useState<SupplementalInfoTemplate[]>([]);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setTemplates(getSupplementalInfoTemplates());
     // 既存の補足情報がない場合は、テンプレート選択画面を表示
     if (!supplementalInfo?.fields || supplementalInfo.fields.length === 0) {
       setShowTemplateSelector(true);
+    } else {
+      // すべてのフィールドを展開状態にする
+      setExpandedFields(new Set(supplementalInfo.fields.map(f => f.id)));
     }
   }, [supplementalInfo]);
 
@@ -60,6 +64,8 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
           createdAt: now,
           updatedAt: now,
         };
+    // すべてのフィールドを展開状態にする
+    setExpandedFields(new Set(newFields.map(f => f.id)));
       }
     });
     setFields(newFields);
@@ -69,6 +75,25 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
   const handleEditField = (field: SupplementalInfoField) => {
     setEditingField(field);
     setShowFieldForm(true);
+  };
+
+  const handleToggleExpand = (fieldId: string) => {
+    const newExpanded = new Set(expandedFields);
+    if (newExpanded.has(fieldId)) {
+      newExpanded.delete(fieldId);
+    } else {
+      newExpanded.add(fieldId);
+    }
+    setExpandedFields(newExpanded);
+  };
+
+  const handleFieldValueChange = (fieldId: string, value: string | undefined) => {
+    const now = new Date().toISOString();
+    setFields(fields.map(f =>
+      f.id === fieldId
+        ? { ...f, value, updatedAt: now }
+        : f
+    ));
   };
 
   const handleFieldSubmit = (data: { label: string; type: 'file' | 'text' | 'evaluation'; value?: string; usage?: string }) => {
@@ -195,46 +220,88 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
           </div>
         ) : (
           <div className="space-y-3">
-            {fields.map((field) => (
-              <div
-                key={field.id}
-                className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 bg-zinc-50 dark:bg-zinc-800"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                        {field.type === 'file' ? 'ファイル' : 'テキストフィールド'}
-                      </span>
+            {fields.map((field) => {
+              const isExpanded = expandedFields.has(field.id);
+              return (
+                <div
+                  key={field.id}
+                  className="border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-800"
+                >
+                  <div className="flex justify-between items-start p-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                          {field.type === 'file' ? '📎 ファイル' : field.type === 'evaluation' ? '⭐ 評価' : '📝 テキストフィールド'}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                        {field.label}
+                      </h4>
+                      {field.usage && (
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
+                          用途: {field.usage}
+                        </p>
+                      )}
+                      {!isExpanded && (
+                        field.value ? (
+                          <p className="text-sm text-zinc-900 dark:text-zinc-100">
+                            {field.type === 'file' ? `ファイル: ${field.value}` : field.value}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-zinc-400 dark:text-zinc-500">未入力</p>
+                        )
+                      )}
                     </div>
-                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
-                      {field.label}
-                    </h4>
-                    {field.usage && (
-                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-                        用途: {field.usage}
-                      </p>
-                    )}
-                    {field.value ? (
-                      <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                        {field.type === 'file' ? `ファイル: ${field.value}` : field.value}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-zinc-400 dark:text-zinc-500">未入力</p>
-                    )}
+                    <div className="flex gap-2 ml-4">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleExpand(field.id)}
+                        className="text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 p-1"
+                        title={isExpanded ? '閉じる' : '編集する'}
+                      >
+                        <svg className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      type="button"
-                      onClick={() => handleEditField(field)}
-                      className="px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                    >
-                      値を編集
-                    </button>
-                  </div>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        値
+                      </label>
+                      {field.type === 'text' && (
+                        <textarea
+                          value={field.value || ''}
+                          onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                          placeholder="テキストを入力"
+                        />
+                      )}
+                      {field.type === 'file' && (
+                        <input
+                          type="text"
+                          value={field.value || ''}
+                          onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="ファイル名を入力"
+                        />
+                      )}
+                      {field.type === 'evaluation' && (
+                        <input
+                          type="text"
+                          value={field.value || ''}
+                          onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
+                          className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="評価を入力"
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

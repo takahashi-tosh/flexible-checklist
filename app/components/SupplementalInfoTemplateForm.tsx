@@ -118,7 +118,7 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
   return (
     <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
+        {/* <div>
           <label htmlFor="name" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
             テンプレート名
           </label>
@@ -132,9 +132,9 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
           <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
             テンプレート名は「補足情報」で固定です
           </p>
-        </div>
+        </div> */}
 
-        <div>
+        {/* <div>
           <label htmlFor="description" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
             説明
           </label>
@@ -146,7 +146,7 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
             className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
             placeholder="説明を入力（任意）"
           />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-12 gap-6">
           {/* 左側: コンポーネントパレット */}
