@@ -57,7 +57,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
         </div>
       </div>
 
-      <div className="p-2">
+      {/* <div className="p-2">
         <button
           onClick={handleAllClick}
           className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -68,7 +68,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
         >
           すべての評価項目
         </button>
-      </div>
+      </div> */}
 
       <div className="p-2">
         <div className="w-full flex items-center justify-between px-1 py-2 rounded-md text-sm transition-colors">

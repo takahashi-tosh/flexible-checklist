@@ -133,7 +133,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
         return (
           <div key={parent.id}>
             {/* 区分ヘッダー */}
-            <h2 className="sticky top-0 z-20 text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 pb-2 border-b-2 border-blue-500 dark:border-blue-400 bg-zinc-50 dark:bg-black">
+            <h2 id={`category-${parent.id}`} className="sticky top-0 z-20 text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 pb-2 border-b-2 border-blue-500 dark:border-blue-400 bg-zinc-50 dark:bg-black scroll-mt-4">
               {parentIndex + 1}. {parent.label}
             </h2>
 
@@ -170,7 +170,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
               return (
                 <div key={childId} className="mb-6">
                   {/* 観点ヘッダー */}
-                  <h3 className="sticky top-[52px] z-10 text-base font-semibold text-zinc-700 dark:text-zinc-300 mb-3 pb-1 border-b border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-black">
+                  <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-base font-semibold text-zinc-700 dark:text-zinc-300 mb-3 pb-1 border-b border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-black scroll-mt-16">
                     {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
                   </h3>
 

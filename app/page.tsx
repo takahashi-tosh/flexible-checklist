@@ -73,37 +73,6 @@ export default function Home() {
     }
   }, [viewMode]);
 
-  // 選択されたカテゴリに基づいて評価項目をフィルタリング
-  const filteredItems = selectedCategoryId
-    ? (() => {
-        const selectedCat = getCategoryById(selectedCategoryId);
-        if (!selectedCat) return items.filter(item => item.categoryId === selectedCategoryId);
-        
-        // 選択されたカテゴリが親カテゴリ（区分）の場合
-        if (!selectedCat.parentId) {
-          // その区分に直接紐づいている評価項目を取得
-          const directItems = items.filter(item => item.categoryId === selectedCategoryId);
-          
-          // その区分の子カテゴリ（観点）に紐づいている評価項目を取得
-          const childCategories = categories.filter(cat => cat.parentId === selectedCategoryId);
-          const childCategoryIds = childCategories.map(cat => cat.id);
-          const childItems = items.filter(item => item.categoryId && childCategoryIds.includes(item.categoryId));
-          
-          // 両方を結合（重複を排除）
-          const allItems = [...directItems];
-          childItems.forEach(item => {
-            if (!allItems.find(i => i.id === item.id)) {
-              allItems.push(item);
-            }
-          });
-          return allItems;
-        }
-        
-        // 選択されたカテゴリが子カテゴリ（観点）の場合は、そのまま
-        return items.filter(item => item.categoryId === selectedCategoryId);
-      })()
-    : items;
-
   // 選択されたカテゴリの情報を取得
   const selectedCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
 
@@ -469,7 +438,7 @@ export default function Home() {
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={(categoryId) => {
           setSelectedCategoryId(categoryId);
-          // カテゴリを選択したら評価項目ビューに切り替える
+          // カテゴリを選択したら評価項目ビューに切り替えてスクロール
           if (viewMode !== 'items') {
             setViewMode('items');
             setShowForm(false);
@@ -479,6 +448,17 @@ export default function Home() {
             setEditingControlContentTemplate(null);
             setShowControlContentForm(false);
             setShowSupplementalInfoForm(false);
+          }
+          
+          // カテゴリが選択されている場合、該当する見出しにスクロール
+          if (categoryId) {
+            // DOMの更新後にスクロール処理を実行
+            setTimeout(() => {
+              const element = document.getElementById(`category-${categoryId}`);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 100);
           }
         }}
         refreshTrigger={sidebarRefreshTrigger}
@@ -554,7 +534,7 @@ export default function Home() {
                 <div className="mb-6">
                   <div className="flex justify-between items-start mb-2">
                     <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                      {selectedCategory.label}
+                      評価項目
                     </h1>
                     {!showForm && !showControlContentForm && !showSupplementalInfoForm && (
                       <div className="flex gap-2">
@@ -581,7 +561,7 @@ export default function Home() {
               {!selectedCategory && (
                 <div className="flex justify-between items-center mb-6">
                   <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    評価項目リスト
+                    評価項目
                   </h1>
                   {!showForm && !showControlContentForm && !showSupplementalInfoForm && (
                     <div className="flex gap-2">
@@ -637,7 +617,7 @@ export default function Home() {
                 </div>
               ) : (
                 <EvaluationItemList
-                  items={filteredItems}
+                  items={items}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onAddControlContent={handleAddControlContent}

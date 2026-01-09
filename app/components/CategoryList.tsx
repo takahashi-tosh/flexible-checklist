@@ -47,7 +47,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                      評価項目リスト
+                      評価項目
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
