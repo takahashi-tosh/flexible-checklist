@@ -9,7 +9,7 @@ interface CategorySidebarProps {
   selectedCategoryId: string | null;
   onSelectCategory: (categoryId: string | null) => void;
   refreshTrigger?: number;
-  onSelectView?: (view: 'supplemental-info-templates' | 'control-content-templates') => void;
+  onSelectView?: (view: 'supplemental-info-templates' | 'control-content-templates' | 'categories') => void;
   currentView?: string;
 }
 
@@ -71,15 +71,26 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
       </div>
 
       <div className="p-2">
-        <div className="w-full text-left font-bold px-1 py-2 rounded-md text-sm transition-colors">
-          区分/観点
+        <div className="w-full flex items-center justify-between px-1 py-2 rounded-md text-sm transition-colors">
+          <span className="font-bold">区分/観点</span>
+          <button
+            onClick={() => onSelectView?.('categories')}
+            className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+            title="カテゴリを管理"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* 区分ラベル */}
       <div className="px-4 py-2 mt-2">
-        <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded inline-block">
-          区分
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded inline-block">
+            区分
+          </div>
         </div>
       </div>
 

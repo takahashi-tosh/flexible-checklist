@@ -439,95 +439,62 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black flex">
       {/* サイドバー */}
-      {viewMode === 'items' && (
-        <CategorySidebar
-          selectedCategoryId={selectedCategoryId}
-          onSelectCategory={setSelectedCategoryId}
-          refreshTrigger={sidebarRefreshTrigger}
-          onSelectView={(view) => {
-            setViewMode(view);
+      <CategorySidebar
+        selectedCategoryId={selectedCategoryId}
+        onSelectCategory={(categoryId) => {
+          setSelectedCategoryId(categoryId);
+          // カテゴリを選択したら評価項目ビューに切り替える
+          if (viewMode !== 'items') {
+            setViewMode('items');
+            setShowForm(false);
             setEditingItem(null);
             setEditingCategory(null);
-            if (view === 'supplemental-info-templates') {
-              const templates = getSupplementalInfoTemplates();
-              setSupplementalInfoTemplates(templates);
-              if (templates.length > 0) {
-                setEditingSupplementalInfoTemplate(templates[0]);
-                setShowForm(true);
-              } else {
-                setEditingSupplementalInfoTemplate(null);
-                setShowForm(false);
-              }
-            } else if (view === 'control-content-templates') {
-              const templates = getControlContentTemplates();
-              setControlContentTemplates(templates);
-              if (templates.length > 0) {
-                setEditingControlContentTemplate(templates[0]);
-                setShowForm(true);
-              } else {
-                setEditingControlContentTemplate(null);
-                setShowForm(false);
-              }
+            setEditingSupplementalInfoTemplate(null);
+            setEditingControlContentTemplate(null);
+            setShowControlContentForm(false);
+            setShowSupplementalInfoForm(false);
+          }
+        }}
+        refreshTrigger={sidebarRefreshTrigger}
+        onSelectView={(view) => {
+          setViewMode(view);
+          setEditingItem(null);
+          setEditingCategory(null);
+          if (view === 'categories') {
+            // カテゴリ管理ビューに遷移
+            setShowForm(false);
+            setEditingSupplementalInfoTemplate(null);
+            setEditingControlContentTemplate(null);
+          } else if (view === 'supplemental-info-templates') {
+            const templates = getSupplementalInfoTemplates();
+            setSupplementalInfoTemplates(templates);
+            if (templates.length > 0) {
+              setEditingSupplementalInfoTemplate(templates[0]);
+              setShowForm(true);
+            } else {
+              setEditingSupplementalInfoTemplate(null);
+              setShowForm(false);
             }
-          }}
-          currentView={viewMode}
-        />
-      )}
+          } else if (view === 'control-content-templates') {
+            const templates = getControlContentTemplates();
+            setControlContentTemplates(templates);
+            if (templates.length > 0) {
+              setEditingControlContentTemplate(templates[0]);
+              setShowForm(true);
+            } else {
+              setEditingControlContentTemplate(null);
+              setShowForm(false);
+            }
+          }
+        }}
+        currentView={viewMode}
+      />
 
       {/* メインコンテンツ */}
-      <main className={`flex-1 overflow-y-auto overflow-x-auto ${viewMode === 'items' ? 'ml-80' : ''}`}>
+      <main className="flex-1 overflow-y-auto overflow-x-auto ml-80">
         <div className={`${viewMode === 'items' ? 'min-w-fit' : 'max-w-6xl mx-auto'} px-4 py-8 sm:px-6 lg:px-8`}>
           {/* ヘッダー */}
           <div className="mb-6 flex justify-between items-center">
-            <div className="flex gap-4 items-center">
-              <button
-                onClick={() => {
-                  setViewMode('items');
-                  setShowForm(false);
-                  setEditingItem(null);
-                  setEditingCategory(null);
-                }}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  viewMode === 'items'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                評価項目
-              </button>
-              <button
-                onClick={() => {
-                  setViewMode('categories');
-                  setShowForm(false);
-                  setEditingItem(null);
-                  setEditingCategory(null);
-                  setEditingSupplementalInfoTemplate(null);
-                }}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  viewMode === 'categories'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
-                }`}
-              >
-                カテゴリ管理
-              </button>
-            </div>
-            {viewMode === 'items' && !showForm && !showControlContentForm && !showSupplementalInfoForm && (
-              <div className="flex gap-2">
-                <button
-                  onClick={handleInitializeSampleData}
-                  className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                >
-                  サンプルデータを読み込む
-                </button>
-                <button
-                  onClick={handleNewClick}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-                >
-                  新規作成
-                </button>
-        </div>
-            )}
             {viewMode === 'categories' && !showForm && (
               <button
                 onClick={() => {
@@ -571,18 +538,54 @@ export default function Home() {
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 min-w-fit">
               {selectedCategory && (
                 <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                    {selectedCategory.label}
-                  </h1>
+                  <div className="flex justify-between items-start mb-2">
+                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                      {selectedCategory.label}
+                    </h1>
+                    {!showForm && !showControlContentForm && !showSupplementalInfoForm && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleInitializeSampleData}
+                          className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                        >
+                          サンプルデータを読み込む
+                        </button>
+                        <button
+                          onClick={handleNewClick}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                        >
+                          新規作成
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {selectedCategory.content && (
                     <p className="text-zinc-600 dark:text-zinc-400">{selectedCategory.content}</p>
                   )}
                 </div>
               )}
               {!selectedCategory && (
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                  評価項目リスト
-                </h1>
+                <div className="flex justify-between items-center mb-6">
+                  <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    評価項目リスト
+                  </h1>
+                  {!showForm && !showControlContentForm && !showSupplementalInfoForm && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleInitializeSampleData}
+                        className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                      >
+                        サンプルデータを読み込む
+                      </button>
+                      <button
+                        onClick={handleNewClick}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                      >
+                        新規作成
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
 
               {showForm ? (
