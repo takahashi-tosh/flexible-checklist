@@ -76,7 +76,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
       </div>
       <div>
         <label htmlFor="parentId" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          親カテゴリ
+          区分
         </label>
         <select
           id="parentId"
@@ -84,7 +84,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
           onChange={(e) => setParentId(e.target.value)}
           className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
-          <option value="">なし（親カテゴリ）</option>
+          <option value="">なし（区分）</option>
           {parentCategories
             .filter(cat => !category || cat.id !== category.id)
             .map(cat => (

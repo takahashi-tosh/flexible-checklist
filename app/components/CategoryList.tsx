@@ -41,7 +41,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
         const children = childCategoriesMap.get(parent.id) || [];
         return (
           <div key={parent.id} className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-            {/* 親カテゴリ */}
+            {/* 区分 */}
             <div className="bg-zinc-50 dark:bg-zinc-800 p-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -71,7 +71,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm('このカテゴリと子カテゴリをすべて削除しますか？')) {
+                      if (confirm('この区分と観点をすべて削除しますか？')) {
                         onDelete(parent.id);
                       }
                     }}
@@ -86,7 +86,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
               </div>
             </div>
             
-            {/* 子カテゴリ */}
+            {/* 観点 */}
             {children.length > 0 && (
               <div className="bg-white dark:bg-zinc-900">
                 {children.map((child) => (
