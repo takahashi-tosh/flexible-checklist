@@ -75,7 +75,33 @@ export default function Home() {
 
   // 選択されたカテゴリに基づいて評価項目をフィルタリング
   const filteredItems = selectedCategoryId
-    ? items.filter(item => item.categoryId === selectedCategoryId)
+    ? (() => {
+        const selectedCat = getCategoryById(selectedCategoryId);
+        if (!selectedCat) return items.filter(item => item.categoryId === selectedCategoryId);
+        
+        // 選択されたカテゴリが親カテゴリ（区分）の場合
+        if (!selectedCat.parentId) {
+          // その区分に直接紐づいている評価項目を取得
+          const directItems = items.filter(item => item.categoryId === selectedCategoryId);
+          
+          // その区分の子カテゴリ（観点）に紐づいている評価項目を取得
+          const childCategories = categories.filter(cat => cat.parentId === selectedCategoryId);
+          const childCategoryIds = childCategories.map(cat => cat.id);
+          const childItems = items.filter(item => item.categoryId && childCategoryIds.includes(item.categoryId));
+          
+          // 両方を結合（重複を排除）
+          const allItems = [...directItems];
+          childItems.forEach(item => {
+            if (!allItems.find(i => i.id === item.id)) {
+              allItems.push(item);
+            }
+          });
+          return allItems;
+        }
+        
+        // 選択されたカテゴリが子カテゴリ（観点）の場合は、そのまま
+        return items.filter(item => item.categoryId === selectedCategoryId);
+      })()
     : items;
 
   // 選択されたカテゴリの情報を取得
@@ -495,18 +521,6 @@ export default function Home() {
         <div className={`${viewMode === 'items' ? 'min-w-fit' : 'max-w-6xl mx-auto'} px-4 py-8 sm:px-6 lg:px-8`}>
           {/* ヘッダー */}
           <div className="mb-6 flex justify-between items-center">
-            {viewMode === 'categories' && !showForm && (
-              <button
-                onClick={() => {
-                  setEditingCategory(null);
-                  setEditingSupplementalInfoTemplate(null);
-                  setShowForm(true);
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-              >
-                新規作成
-              </button>
-            )}
             {viewMode === 'supplemental-info-templates' && !showForm && supplementalInfoTemplates.length === 0 && (
               <button
                 onClick={() => {
@@ -639,9 +653,23 @@ export default function Home() {
           {/* カテゴリ管理ビュー */}
           {viewMode === 'categories' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
-              <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                カテゴリ管理
-              </h1>
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  カテゴリ管理
+                </h1>
+                {!showForm && (
+                  <button
+                    onClick={() => {
+                      setEditingCategory(null);
+                      setEditingSupplementalInfoTemplate(null);
+                      setShowForm(true);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  >
+                    新規作成
+                  </button>
+                )}
+              </div>
 
               {showForm ? (
                 <div className="mb-6">
@@ -656,13 +684,13 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  <div className="mb-6">
+                  {/* <div className="mb-6">
                     <CategorySettingsForm
                       onUpdate={() => {
                         setSidebarRefreshTrigger(prev => prev + 1);
                       }}
                     />
-                  </div>
+                  </div> */}
                   <CategoryList
                     categories={categories}
                     onEdit={handleCategoryEdit}

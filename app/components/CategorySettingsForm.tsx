@@ -31,7 +31,7 @@ export default function CategorySettingsForm({ onUpdate }: CategorySettingsFormP
       <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
         カテゴリ表示設定
       </h3>
-      <div>
+      {/* <div>
         <label htmlFor="parentColumnLabel" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
           区分列の表示ラベル
         </label>
@@ -62,7 +62,7 @@ export default function CategorySettingsForm({ onUpdate }: CategorySettingsFormP
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
           サイドバーのテーブルの右列ヘッダーに表示されるラベルを設定できます
         </p>
-      </div>
+      </div> */}
       <div className="flex gap-2 justify-end">
         <button
           type="submit"
