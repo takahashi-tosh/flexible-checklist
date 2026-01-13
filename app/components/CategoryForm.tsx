@@ -57,7 +57,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-          placeholder="カテゴリ名を入力"
+          placeholder="区分/観点名を入力"
           required
         />
       </div>

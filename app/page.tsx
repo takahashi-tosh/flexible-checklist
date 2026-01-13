@@ -66,20 +66,20 @@ export default function Home() {
     }
   }, [viewMode]);
 
-  // カテゴリが変更されたときにサイドバーを更新
+  // 区分/観点が変更されたときにサイドバーを更新
   useEffect(() => {
     if (viewMode === 'items') {
       setCategories(getCategories());
     }
   }, [viewMode]);
 
-  // 選択されたカテゴリの情報を取得
+  // 選択された区分/観点の情報を取得
   const selectedCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
 
   const handleCreate = (data: { name: string; description?: string; categoryId?: string }) => {
     createEvaluationItem(data);
     setItems(getEvaluationItems());
-    // カテゴリが変更された場合はサイドバーを更新
+    // 区分/観点が変更された場合はサイドバーを更新
     if (data.categoryId) {
       setSidebarRefreshTrigger(prev => prev + 1);
     }
@@ -90,7 +90,7 @@ export default function Home() {
     if (editingItem) {
       updateEvaluationItem(editingItem.id, data);
       setItems(getEvaluationItems());
-      // カテゴリが変更された場合はサイドバーを更新
+      // 区分/観点が変更された場合はサイドバーを更新
       if (data.categoryId !== editingItem.categoryId) {
         setSidebarRefreshTrigger(prev => prev + 1);
       }
@@ -143,7 +143,7 @@ export default function Home() {
       setEditingCategory(null);
       setShowForm(false);
     }
-    // 削除されたカテゴリが選択されていた場合は選択を解除
+    // 削除された区分/観点が選択されていた場合は選択を解除
     if (selectedCategoryId === id) {
       setSelectedCategoryId(null);
     }
@@ -438,7 +438,7 @@ export default function Home() {
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={(categoryId) => {
           setSelectedCategoryId(categoryId);
-          // カテゴリを選択したら評価項目ビューに切り替えてスクロール
+          // 区分/観点を選択したら評価項目ビューに切り替えてスクロール
           if (viewMode !== 'items') {
             setViewMode('items');
             setShowForm(false);
@@ -450,7 +450,7 @@ export default function Home() {
             setShowSupplementalInfoForm(false);
           }
           
-          // カテゴリが選択されている場合、該当する見出しにスクロール
+          // 区分/観点が選択されている場合、該当する見出しにスクロール
           if (categoryId) {
             // DOMの更新後にスクロール処理を実行
             setTimeout(() => {
@@ -467,7 +467,7 @@ export default function Home() {
           setEditingItem(null);
           setEditingCategory(null);
           if (view === 'categories') {
-            // カテゴリ管理ビューに遷移
+            // 区分/観点管理ビューに遷移
             setShowForm(false);
             setEditingSupplementalInfoTemplate(null);
             setEditingControlContentTemplate(null);
@@ -498,9 +498,9 @@ export default function Home() {
 
       {/* メインコンテンツ */}
       <main className="flex-1 overflow-y-auto overflow-x-auto ml-80">
-        <div className={`${viewMode === 'items' ? 'min-w-fit' : 'max-w-6xl mx-auto'} px-4 py-8 sm:px-6 lg:px-8`}>
+        <div className={`${viewMode === 'items' ? 'min-w-fit h-full' : 'max-w-6xl mx-auto'}`}>
           {/* ヘッダー */}
-          <div className="mb-6 flex justify-between items-center">
+          <div className="flex justify-between items-center">
             {viewMode === 'supplemental-info-templates' && !showForm && supplementalInfoTemplates.length === 0 && (
               <button
                 onClick={() => {
@@ -529,29 +529,10 @@ export default function Home() {
 
           {/* 評価項目ビュー */}
           {viewMode === 'items' && (
-            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8 min-w-fit">
+            <div className="bg-white dark:bg-zinc-900 p-8 sm:p-8 min-w-fit h-full">
               {selectedCategory && (
-                <div className="mb-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                      評価項目
-                    </h1>
-                    {!showForm && !showControlContentForm && !showSupplementalInfoForm && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleInitializeSampleData}
-                          className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                        >
-                          サンプルデータを読み込む
-                        </button>
-                        <button
-                          onClick={handleNewClick}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-                        >
-                          新規作成
-                        </button>
-                      </div>
-                    )}
+                <div className="">
+                  <div className="flex justify-between items-start">
                   </div>
                   {selectedCategory.content && (
                     <p className="text-zinc-600 dark:text-zinc-400">{selectedCategory.content}</p>
@@ -559,26 +540,7 @@ export default function Home() {
                 </div>
               )}
               {!selectedCategory && (
-                <div className="flex justify-between items-center mb-6">
-                  <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    評価項目
-                  </h1>
-                  {!showForm && !showControlContentForm && !showSupplementalInfoForm && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleInitializeSampleData}
-                        className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-                      >
-                        サンプルデータを読み込む
-                      </button>
-                      <button
-                        onClick={handleNewClick}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-                      >
-                        新規作成
-                      </button>
-                    </div>
-                  )}
+                <div className="flex justify-between items-center">
                 </div>
               )}
 
@@ -616,26 +578,39 @@ export default function Home() {
                   />
                 </div>
               ) : (
-                <EvaluationItemList
-                  items={items}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onAddControlContent={handleAddControlContent}
-                  onEditControlContent={handleEditControlContent}
-                  onDeleteControlContent={handleDeleteControlContent}
-                  onEditSupplementalInfo={handleEditSupplementalInfo}
-                  onDeleteSupplementalInfo={handleDeleteSupplementalInfo}
-                />
+                <>
+                  <EvaluationItemList
+                    items={items}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onAddControlContent={handleAddControlContent}
+                    onEditControlContent={handleEditControlContent}
+                    onDeleteControlContent={handleDeleteControlContent}
+                    onEditSupplementalInfo={handleEditSupplementalInfo}
+                    onDeleteSupplementalInfo={handleDeleteSupplementalInfo}
+                  />
+                  {/* フローティング新規作成ボタン */}
+                  <button
+                    onClick={handleNewClick}
+                    className="fixed bottom-8 right-8 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
+                    title="評価項目を追加"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>評価項目を追加</span>
+                  </button>
+                </>
               )}
             </div>
           )}
 
-          {/* カテゴリ管理ビュー */}
+          {/* 区分/観点管理ビュー */}
           {viewMode === 'categories' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  カテゴリ管理
+                  区分/観点
                 </h1>
                 {!showForm && (
                   <button
@@ -654,7 +629,7 @@ export default function Home() {
               {showForm ? (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    {editingCategory ? 'カテゴリを編集' : 'カテゴリを新規作成'}
+                    {editingCategory ? '区分/観点を編集' : '区分/観点を新規作成'}
                   </h2>
                   <CategoryForm
                     category={editingCategory}

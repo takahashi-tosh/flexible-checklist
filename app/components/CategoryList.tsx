@@ -20,7 +20,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
   if (allCategories.length === 0) {
     return (
       <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-        カテゴリがありません。新規作成してください。
+        区分/観点がありません。新規作成してください。
       </div>
     );
   }
@@ -119,7 +119,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm('このカテゴリを削除しますか？')) {
+                            if (confirm('この区分/観点を削除しますか？')) {
                               onDelete(child.id);
                             }
                           }}

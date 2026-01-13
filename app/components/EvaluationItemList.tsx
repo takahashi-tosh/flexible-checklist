@@ -61,14 +61,14 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
     );
   }
 
-  // 区分（親カテゴリ）ごとにグループ化
+  // 区分（親区分/観点）ごとにグループ化
   const parentCategories = categories.filter(c => !c.parentId);
   const groupedItems: { [key: string]: { parent: Category | null; children: { [key: string]: { category: Category; items: EvaluationItem[] } }; uncategorizedItems: EvaluationItem[] } } = {};
   
-  // カテゴリなしのアイテム
+  // 区分/観点なしのアイテム
   const uncategorizedItems = items.filter(item => !item.categoryId);
   
-  // 親カテゴリごとに整理
+  // 親区分/観点ごとに整理
   parentCategories.forEach(parent => {
     groupedItems[parent.id] = {
       parent,
@@ -76,7 +76,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
       uncategorizedItems: []
     };
     
-    // 観点（子カテゴリ）を取得
+    // 観点（子区分/観点）を取得
     const childCategories = categories.filter(c => c.parentId === parent.id);
     
     childCategories.forEach(child => {
@@ -86,18 +86,20 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
       };
     });
     
-    // 親カテゴリに直接紐づいているアイテム
+    // 親区分/観点に直接紐づいているアイテム
     groupedItems[parent.id].uncategorizedItems = items.filter(item => item.categoryId === parent.id);
   });
 
   return (
     <div className="space-y-6">
-      {/* カテゴリなしのアイテム */}
+      {/* 区分/観点なしのアイテム */}
       {uncategorizedItems.length > 0 && (
         <div>
-          <h3 className="sticky top-0 z-10 text-lg font-bold text-zinc-700 dark:text-zinc-300 mb-3 pb-2 border-b-2 border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-black">
-            未分類
-          </h3>
+          <div className="mb-3 flex items-start justify-start gap-1.5 self-stretch mt-8">
+            <h3 className="flex-1 justify-center self-stretch text-xl font-semibold leading-[1.7] tracking-wider text-body">
+              未分類
+            </h3>
+          </div>
           <div className="space-y-4">
             {uncategorizedItems.map((item) => (
               <div
@@ -133,9 +135,11 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
         return (
           <div key={parent.id}>
             {/* 区分ヘッダー */}
-            <h2 id={`category-${parent.id}`} className="sticky top-0 z-20 text-xl font-bold text-zinc-900 dark:text-zinc-100 mb-4 pb-2 border-b-2 border-blue-500 dark:border-blue-400 bg-zinc-50 dark:bg-black scroll-mt-4">
-              {parentIndex + 1}. {parent.label}
-            </h2>
+            <div className="mb-3 flex items-start justify-start gap-1.5 self-stretch mt-8">
+              <h2 id={`category-${parent.id}`} className="flex-1 justify-center self-stretch text-xl font-semibold leading-[1.7] tracking-wider text-body">
+                {parentIndex + 1}. {parent.label}
+              </h2>
+            </div>
 
             {/* 区分に直接紐づいている評価項目 */}
             {group.uncategorizedItems.length > 0 && (
@@ -170,7 +174,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
               return (
                 <div key={childId} className="mb-6">
                   {/* 観点ヘッダー */}
-                  <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-base font-semibold text-zinc-700 dark:text-zinc-300 mb-3 pb-1 border-b border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-black scroll-mt-16">
+                  <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-base font-semibold text-zinc-700 dark:text-zinc-300 mb-3 pb-1  scroll-mt-16">
                     {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
                   </h3>
 
@@ -235,6 +239,10 @@ function ItemContent({
   expandedSupplementalInfo,
   toggleSupplementalInfo
 }: ItemContentProps) {
+  const [isHovering, setIsHovering] = useState(false);
+  const hasControlContent = item.controlContents && item.controlContents.length > 0;
+  const canAddControlContent = onAddControlContent && !hasControlContent;
+
   return (
     <div>
       <div className="flex-1">
@@ -246,9 +254,28 @@ function ItemContent({
           </div>
         )}
         <div className="flex items-center justify-between gap-2 mb-1">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-            {item.name}
-          </h3>
+          <div 
+            className={`flex items-center gap-2 flex-1 group ${canAddControlContent ? 'cursor-pointer' : ''}`}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onClick={() => canAddControlContent && onAddControlContent(item.id)}
+          >
+            {canAddControlContent && (
+              <div
+                className={`flex-shrink-0 p-1 text-blue-600 dark:text-blue-400 rounded transition-all ${
+                  isHovering ? 'opacity-100' : 'opacity-0'
+                }`}
+                title="統制内容を追加"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+            )}
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              {item.name}
+            </h3>
+          </div>
           <div className="flex gap-2">
             {(!item.supplementalInfo || !item.supplementalInfo.fields || item.supplementalInfo.fields.length === 0) && onEditSupplementalInfo && (
               <button
@@ -385,25 +412,17 @@ function ItemContent({
         
         {/* 統制内容 */}
         {item.controlContents && item.controlContents.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-700">
-            <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-3">統制内容</h4>
+          <div className="mt-4
+          ">
             <ControlContentList
               controlContents={item.controlContents}
               onEdit={(controlContent: ControlContent) => onEditControlContent?.(item.id, controlContent)}
               onDelete={(controlContentId: string) => onDeleteControlContent?.(item.id, controlContentId)}
+              onAdd={() => onAddControlContent?.(item.id)}
             />
           </div>
         )}
-        {onAddControlContent && (
-          <div className="mt-4">
-            <button
-              onClick={() => onAddControlContent(item.id)}
-              className="px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-            >
-              + 統制内容を追加
-            </button>
-          </div>
-        )}
+
       </div>
     </div>
   );

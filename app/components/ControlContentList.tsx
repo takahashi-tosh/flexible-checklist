@@ -1,14 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import { ControlContent, ControlContentField } from '../types/control-content';
 
 interface ControlContentListProps {
   controlContents: ControlContent[];
   onEdit: (controlContent: ControlContent) => void;
   onDelete: (id: string) => void;
+  onAdd?: () => void;
 }
 
-export default function ControlContentList({ controlContents, onEdit, onDelete }: ControlContentListProps) {
+export default function ControlContentList({ controlContents, onEdit, onDelete, onAdd }: ControlContentListProps) {
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   if (controlContents.length === 0) {
     return (
       <div className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -30,17 +33,17 @@ export default function ControlContentList({ controlContents, onEdit, onDelete }
   const tableWidth = sampleFields.reduce((sum, field) => sum + calculateWidth(field.type), 0) + actionColumnWidth;
 
   return (
-    <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 overflow-x-auto">
+    <div className="bg-white dark:bg-zinc-900 overflow-x-auto">
       <table className="w-full table-fixed border-collapse" style={{ minWidth: `${tableWidth}px` }}>
         <thead>
           <tr className="bg-zinc-100 dark:bg-zinc-800">
-            {sampleFields.map((field) => (
+            {sampleFields.map((field, index) => (
               <th
                 key={field.id}
                 className="px-4 py-2 text-left text-xs font-medium text-zinc-700 dark:text-zinc-300 border-b border-zinc-200 dark:border-zinc-700"
                 style={{ width: `${calculateWidth(field.type)}px` }}
               >
-                {field.label}
+                {index === 0 ? '統制内容 / ' : ''}{field.label}
               </th>
             ))}
             {/* 操作列のヘッダー */}
@@ -51,12 +54,34 @@ export default function ControlContentList({ controlContents, onEdit, onDelete }
         </thead>
         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
           {controlContents.map((controlContent) => (
-            <tr key={controlContent.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-              {controlContent.fields.map((field) => (
+            <tr 
+              key={controlContent.id} 
+              className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group cursor-pointer"
+              onMouseEnter={() => setHoveredRowId(controlContent.id)}
+              onMouseLeave={() => setHoveredRowId(null)}
+              onClick={() => onEdit(controlContent)}
+            >
+              {controlContent.fields.map((field, fieldIndex) => (
                 <td
                   key={field.id}
-                  className="px-4 py-4 text-sm text-zinc-900 dark:text-zinc-100 align-top"
+                  className="px-4 py-4 text-sm text-zinc-900 dark:text-zinc-100 align-top relative"
                 >
+                  {fieldIndex === 0 && onAdd && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAdd();
+                      }}
+                      className={`absolute left-2 top-1/2 -translate-y-1/2 -translate-x-1/2 p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm ${
+                        hoveredRowId === controlContent.id ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      title="統制内容を追加"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </button>
+                  )}
                   {field.type === 'evaluation' ? (
                     <div className="space-y-1">
                       {field.evaluationValue?.conclusion && (
@@ -103,17 +128,12 @@ export default function ControlContentList({ controlContents, onEdit, onDelete }
               {/* 操作ボタン列 */}
               <td className="px-4 py-4 text-right align-top">
                 <div className="flex gap-2 justify-end">
+
                   <button
-                    onClick={() => onEdit(controlContent)}
-                    className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
-                    title="編集"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => confirm('この統制内容を削除しますか？') && onDelete(controlContent.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirm('この統制内容を削除しますか？') && onDelete(controlContent.id);
+                    }}
                     className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                     title="削除"
                   >
