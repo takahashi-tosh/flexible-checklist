@@ -71,7 +71,7 @@ export function updateCategory(id: string, updates: Partial<Omit<Category, 'id' 
 export function deleteCategory(id: string): boolean {
   const categories = getCategories();
   
-  // 観点も削除
+  // 中項目も削除
   const childCategories = getChildCategories(id);
   const allIdsToDelete = [id, ...childCategories.map(c => c.id)];
   

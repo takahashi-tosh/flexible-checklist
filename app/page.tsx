@@ -66,20 +66,20 @@ export default function Home() {
     }
   }, [viewMode]);
 
-  // 区分/観点が変更されたときにサイドバーを更新
+  // 大項目/中項目が変更されたときにサイドバーを更新
   useEffect(() => {
     if (viewMode === 'items') {
       setCategories(getCategories());
     }
   }, [viewMode]);
 
-  // 選択された区分/観点の情報を取得
+  // 選択された大項目/中項目の情報を取得
   const selectedCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
 
   const handleCreate = (data: { name: string; description?: string; categoryId?: string }) => {
     createEvaluationItem(data);
     setItems(getEvaluationItems());
-    // 区分/観点が変更された場合はサイドバーを更新
+    // 大項目/中項目が変更された場合はサイドバーを更新
     if (data.categoryId) {
       setSidebarRefreshTrigger(prev => prev + 1);
     }
@@ -90,7 +90,7 @@ export default function Home() {
     if (editingItem) {
       updateEvaluationItem(editingItem.id, data);
       setItems(getEvaluationItems());
-      // 区分/観点が変更された場合はサイドバーを更新
+      // 大項目/中項目が変更された場合はサイドバーを更新
       if (data.categoryId !== editingItem.categoryId) {
         setSidebarRefreshTrigger(prev => prev + 1);
       }
@@ -143,7 +143,7 @@ export default function Home() {
       setEditingCategory(null);
       setShowForm(false);
     }
-    // 削除された区分/観点が選択されていた場合は選択を解除
+    // 削除された大項目/中項目が選択されていた場合は選択を解除
     if (selectedCategoryId === id) {
       setSelectedCategoryId(null);
     }
@@ -438,7 +438,7 @@ export default function Home() {
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={(categoryId) => {
           setSelectedCategoryId(categoryId);
-          // 区分/観点を選択したら評価項目ビューに切り替えてスクロール
+          // 大項目/中項目を選択したら評価項目ビューに切り替えてスクロール
           if (viewMode !== 'items') {
             setViewMode('items');
             setShowForm(false);
@@ -450,7 +450,7 @@ export default function Home() {
             setShowSupplementalInfoForm(false);
           }
           
-          // 区分/観点が選択されている場合、該当する見出しにスクロール
+          // 大項目/中項目が選択されている場合、該当する見出しにスクロール
           if (categoryId) {
             // DOMの更新後にスクロール処理を実行
             setTimeout(() => {
@@ -467,7 +467,7 @@ export default function Home() {
           setEditingItem(null);
           setEditingCategory(null);
           if (view === 'categories') {
-            // 区分/観点管理ビューに遷移
+            // 大項目/中項目管理ビューに遷移
             setShowForm(false);
             setEditingSupplementalInfoTemplate(null);
             setEditingControlContentTemplate(null);
@@ -605,12 +605,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* 区分/観点管理ビュー */}
+          {/* 大項目/中項目管理ビュー */}
           {viewMode === 'categories' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
               <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  区分/観点
+                  大項目/中項目
                 </h1>
                 {!showForm && (
                   <button
@@ -629,7 +629,7 @@ export default function Home() {
               {showForm ? (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    {editingCategory ? '区分/観点を編集' : '区分/観点を新規作成'}
+                    {editingCategory ? '大項目/中項目を編集' : '大項目/中項目を新規作成'}
                   </h2>
                   <CategoryForm
                     category={editingCategory}

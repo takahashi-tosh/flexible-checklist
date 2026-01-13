@@ -55,20 +55,29 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-        評価項目がありません。新規作成してください。
+      <div>
+        <div className="flex flex-col items-center justify-center py-12">
+          <img 
+            src="/guide.svg" 
+            alt="評価項目作成ガイド" 
+            className="w-full max-w-5xl"
+          />
+        </div>
+        <div className='text-center py-12 text-zinc-500 dark:text-zinc-400'>評価項目がありません。新規作成してください。</div>
+
       </div>
+      
     );
   }
 
-  // 区分（親区分/観点）ごとにグループ化
+  // 大項目（親大項目/中項目）ごとにグループ化
   const parentCategories = categories.filter(c => !c.parentId);
   const groupedItems: { [key: string]: { parent: Category | null; children: { [key: string]: { category: Category; items: EvaluationItem[] } }; uncategorizedItems: EvaluationItem[] } } = {};
   
-  // 区分/観点なしのアイテム
+  // 大項目/中項目なしのアイテム
   const uncategorizedItems = items.filter(item => !item.categoryId);
   
-  // 親区分/観点ごとに整理
+  // 親大項目/中項目ごとに整理
   parentCategories.forEach(parent => {
     groupedItems[parent.id] = {
       parent,
@@ -76,7 +85,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
       uncategorizedItems: []
     };
     
-    // 観点（子区分/観点）を取得
+    // 中項目（子大項目/中項目）を取得
     const childCategories = categories.filter(c => c.parentId === parent.id);
     
     childCategories.forEach(child => {
@@ -86,13 +95,13 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
       };
     });
     
-    // 親区分/観点に直接紐づいているアイテム
+    // 親大項目/中項目に直接紐づいているアイテム
     groupedItems[parent.id].uncategorizedItems = items.filter(item => item.categoryId === parent.id);
   });
 
   return (
     <div className="space-y-6">
-      {/* 区分/観点なしのアイテム */}
+      {/* 大項目/中項目なしのアイテム */}
       {uncategorizedItems.length > 0 && (
         <div>
           <div className="mb-3 flex items-start justify-start gap-1.5 self-stretch mt-8">
@@ -125,7 +134,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
         </div>
       )}
 
-      {/* 区分ごとのグループ */}
+      {/* 大項目ごとのグループ */}
       {parentCategories.map((parent, parentIndex) => {
         const group = groupedItems[parent.id];
         const hasItems = group.uncategorizedItems.length > 0 || Object.values(group.children).some(child => child.items.length > 0);
@@ -134,14 +143,14 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
 
         return (
           <div key={parent.id}>
-            {/* 区分ヘッダー */}
+            {/* 大項目ヘッダー */}
             <div className="mb-3 flex items-start justify-start gap-1.5 self-stretch mt-8">
               <h2 id={`category-${parent.id}`} className="flex-1 justify-center self-stretch text-xl font-semibold leading-[1.7] tracking-wider text-body">
                 {parentIndex + 1}. {parent.label}
               </h2>
             </div>
 
-            {/* 区分に直接紐づいている評価項目 */}
+            {/* 大項目に直接紐づいている評価項目 */}
             {group.uncategorizedItems.length > 0 && (
               <div className="mb-6 space-y-4">
                 {group.uncategorizedItems.map((item) => (
@@ -167,13 +176,13 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
               </div>
             )}
 
-            {/* 観点ごとのグループ */}
+            {/* 中項目ごとのグループ */}
             {Object.entries(group.children).map(([childId, childData], childIndex) => {
               if (childData.items.length === 0) return null;
 
               return (
                 <div key={childId} className="mb-6">
-                  {/* 観点ヘッダー */}
+                  {/* 中項目ヘッダー */}
                   <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-base font-semibold text-zinc-700 dark:text-zinc-300 mb-3 pb-1  scroll-mt-16">
                     {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
                   </h3>

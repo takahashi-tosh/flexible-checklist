@@ -85,7 +85,7 @@ export default function EvaluationItemForm({ item, onSubmit, onCancel }: Evaluat
       </div> */}
       <div>
         <label htmlFor="categoryId" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          区分/観点
+          大項目/中項目
         </label>
         <select
           id="categoryId"

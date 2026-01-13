@@ -1,8 +1,8 @@
 const SETTINGS_KEY = 'category-settings';
 
 export interface CategorySettings {
-  parentColumnLabel?: string; // 区分列の表示ラベル（例：「6つのこうもく」）
-  childColumnLabel?: string; // 観点列の表示ラベル（例：「4つの項目」）
+  parentColumnLabel?: string; // 大項目列の表示ラベル（例：「6つのこうもく」）
+  childColumnLabel?: string; // 中項目列の表示ラベル（例：「4つの項目」）
 }
 
 export function getCategorySettings(): CategorySettings {
@@ -32,7 +32,7 @@ export function saveCategorySettings(settings: CategorySettings): void {
 
 export function getParentColumnLabel(): string {
   const settings = getCategorySettings();
-  return settings.parentColumnLabel || '区分';
+  return settings.parentColumnLabel || '大項目';
 }
 
 export function setParentColumnLabel(label: string): void {
@@ -43,7 +43,7 @@ export function setParentColumnLabel(label: string): void {
 
 export function getChildColumnLabel(): string {
   const settings = getCategorySettings();
-  return settings.childColumnLabel || '観点';
+  return settings.childColumnLabel || '中項目';
 }
 
 export function setChildColumnLabel(label: string): void {
@@ -54,10 +54,10 @@ export function setChildColumnLabel(label: string): void {
 
 // 後方互換性のための関数（削除予定）
 export function getParentLabel(): string {
-  return '区分';
+  return '大項目';
 }
 
 export function getChildLabel(): string {
-  return '観点';
+  return '中項目';
 }
 

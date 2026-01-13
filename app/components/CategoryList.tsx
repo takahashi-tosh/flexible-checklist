@@ -20,7 +20,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
   if (allCategories.length === 0) {
     return (
       <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-        区分/観点がありません。新規作成してください。
+        大項目/中項目がありません。新規作成してください。
       </div>
     );
   }
@@ -41,13 +41,13 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
         const children = childCategoriesMap.get(parent.id) || [];
         return (
           <div key={parent.id} className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-            {/* 区分 */}
+            {/* 大項目 */}
             <div className="bg-zinc-50 dark:bg-zinc-800 p-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                      評価項目
+                      大項目
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
@@ -71,7 +71,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm('この区分と観点をすべて削除しますか？')) {
+                      if (confirm('この大項目と中項目をすべて削除しますか？')) {
                         onDelete(parent.id);
                       }
                     }}
@@ -86,7 +86,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
               </div>
             </div>
             
-            {/* 観点 */}
+            {/* 中項目 */}
             {children.length > 0 && (
               <div className="bg-white dark:bg-zinc-900">
                 {children.map((child) => (
@@ -95,7 +95,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                            評価項目
+                            中項目
                           </span>
                         </div>
                         <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
@@ -119,7 +119,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                         </button>
                         <button
                           onClick={() => {
-                            if (confirm('この区分/観点を削除しますか？')) {
+                            if (confirm('この大項目/中項目を削除しますか？')) {
                               onDelete(child.id);
                             }
                           }}

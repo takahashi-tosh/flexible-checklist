@@ -49,7 +49,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="label" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          ラベル項目 <span className="text-red-500">*</span>
+          内容 <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -57,26 +57,13 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-          placeholder="区分/観点名を入力"
+          placeholder="大項目/中項目名を入力"
           required
         />
       </div>
       <div>
-        <label htmlFor="content" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          内容
-        </label>
-        <textarea
-          id="content"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={3}
-          className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
-          placeholder="内容を入力（任意）"
-        />
-      </div>
-      <div>
         <label htmlFor="parentId" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          区分
+          大項目
         </label>
         <select
           id="parentId"
@@ -84,7 +71,7 @@ export default function CategoryForm({ category, onSubmit, onCancel }: CategoryF
           onChange={(e) => setParentId(e.target.value)}
           className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         >
-          <option value="">なし（区分）</option>
+          <option value="">なし（大項目）</option>
           {parentCategories
             .filter(cat => !category || cat.id !== category.id)
             .map(cat => (
