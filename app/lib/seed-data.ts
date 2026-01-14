@@ -5,7 +5,7 @@ import { SupplementalInfoTemplate } from '../types/supplemental-info-template';
 
 // seedデータ用の型定義（id, createdAt, updatedAtを持たないフィールド）
 type SeedControlContentField = Omit<import('../types/control-content').ControlContentField, 'id' | 'createdAt' | 'updatedAt'>;
-type SeedControlContent = Omit<import('../types/control-content').ControlContent, 'id' | 'createdAt' | 'updatedAt'> & {
+type SeedControlContent = Omit<import('../types/control-content').ControlContent, 'id' | 'createdAt' | 'updatedAt' | 'fields'> & {
   fields: SeedControlContentField[];
 };
 type SeedSupplementalInfoField = Omit<import('../types/supplemental-info').SupplementalInfoField, 'id' | 'createdAt' | 'updatedAt'>;
