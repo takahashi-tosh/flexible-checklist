@@ -5,7 +5,6 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { ControlContentFieldTemplate } from '../types/control-content-template';
 import { FieldType } from '../types/supplemental-info';
-import { ConclusionType } from '../types/evaluation-object';
 
 interface FieldCanvasProps {
   fields: Omit<ControlContentFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>[];
@@ -113,59 +112,149 @@ function SortableField({
       </div>
 
       {isExpanded && (
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              ラベル
-            </label>
-            <input
-              type="text"
-              value={field.label}
-              onChange={(e) => onUpdateField({ label: e.target.value })}
-              className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ラベルを入力"
-            />
+        <div className="p-4 space-y-4">
+          {/* 編集フォーム */}
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                ラベル
+              </label>
+              <input
+                type="text"
+                value={field.label}
+                onChange={(e) => onUpdateField({ label: e.target.value })}
+                className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ラベルを入力"
+              />
+            </div>
+
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              用途
-            </label>
-            <input
-              type="text"
-              value={field.usage || ''}
-              onChange={(e) => onUpdateField({ usage: e.target.value })}
-              className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="用途を入力（任意）"
-            />
-          </div>
-
-          {field.type === 'evaluation' && (
-            <div className="border-t border-zinc-200 dark:border-zinc-800 pt-3 mt-3">
-              <div className="text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                評価のデフォルト値
+          {/* プレビュー */}
+          {field.label.trim() && (
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-3">
+                プレビュー
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                    結論
-                  </label>
-                  <select
-                    value={field.evaluationDefaults?.conclusion || ''}
-                    onChange={(e) => onUpdateField({
-                      evaluationDefaults: {
-                        ...field.evaluationDefaults,
-                        conclusion: e.target.value as ConclusionType,
-                      }
-                    })}
-                    className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">選択してください</option>
-                    <option value="effective">有効</option>
-                    <option value="effective_with_recommendations">有効(推奨事項有)</option>
-                    <option value="ineffective">非有効</option>
-                    <option value="pending">保留</option>
-                  </select>
+              <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800">
+
+                <div className="space-y-3 border-zinc-300 dark:border-zinc-700">
+                  {field.type === 'text' && (
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                        値
+                      </label>
+                      <textarea
+                        disabled
+                        rows={3}
+                        className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                        placeholder="値を入力"
+                      />
+                    </div>
+                  )}
+
+                  {field.type === 'file' && (
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                        ファイル情報
+                      </label>
+                      <textarea
+                        disabled
+                        rows={2}
+                        className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                        placeholder="ファイル名やパスを入力"
+                      />
+                    </div>
+                  )}
+
+                  {field.type === 'evaluation' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">結論</label>
+                        <div className="flex flex-wrap gap-3">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              disabled
+                              className="form-radio h-4 w-4 text-blue-600 cursor-not-allowed"
+                            />
+                            <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">有効</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              disabled
+                              className="form-radio h-4 w-4 text-blue-600 cursor-not-allowed"
+                            />
+                            <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">有効(推奨事項有)</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              disabled
+                              className="form-radio h-4 w-4 text-blue-600 cursor-not-allowed"
+                            />
+                            <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">非有効</span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              disabled
+                              className="form-radio h-4 w-4 text-blue-600 cursor-not-allowed"
+                            />
+                            <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">保留</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          評価経緯
+                        </label>
+                        <textarea
+                          disabled
+                          rows={3}
+                          className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                          placeholder="評価経緯を入力"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          検出事項
+                        </label>
+                        <textarea
+                          disabled
+                          rows={3}
+                          className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                          placeholder="検出事項を入力"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          評価日
+                        </label>
+                        <input
+                          type="date"
+                          disabled
+                          className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                          担当者
+                        </label>
+                        <input
+                          type="text"
+                          disabled
+                          className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                          placeholder="担当者を入力"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -199,7 +288,7 @@ export default function FieldCanvas({ fields, expandedFields, onToggleExpand, on
         </div>
       ) : (
         <SortableContext items={fields.map((_, i) => `field-${i}`)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {fields.map((field, index) => (
               <SortableField
                 key={`field-${index}`}

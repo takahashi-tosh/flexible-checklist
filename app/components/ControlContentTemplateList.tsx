@@ -48,11 +48,6 @@ export default function ControlContentTemplateList({ templates, onEdit, onDelete
                       <span className="text-zinc-500 dark:text-zinc-400 ml-2">
                         ({field.type === 'file' ? 'ファイル' : field.type === 'evaluation' ? '評価' : 'テキストフィールド'})
                       </span>
-                      {field.usage && (
-                        <span className="text-zinc-500 dark:text-zinc-400 ml-2">
-                          - {field.usage}
-                        </span>
-                      )}
                       {field.type === 'evaluation' && field.evaluationDefaults && (
                         <div className="mt-1 ml-4 text-xs text-zinc-500 dark:text-zinc-400">
                           {field.evaluationDefaults.conclusion && (

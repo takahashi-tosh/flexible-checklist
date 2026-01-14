@@ -388,7 +388,7 @@ function ItemContent({
                   <div key={field.id} className="border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 pb-2 last:pb-0">
                     <div className="mb-1">
                       <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-400">
-                        {field.label} {field.usage && `(${field.usage})`}
+                        {field.label}
                       </span>
                     </div>
                     {field.value ? (

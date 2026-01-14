@@ -5,7 +5,7 @@ import { SupplementalInfoField, FieldType } from '../types/supplemental-info';
 
 interface SupplementalInfoFieldFormProps {
   field?: SupplementalInfoField | null;
-  onSubmit: (data: { label: string; type: FieldType; value?: string; usage?: string }) => void;
+  onSubmit: (data: { label: string; type: FieldType; value?: string }) => void;
   onCancel: () => void;
   valueOnly?: boolean; // 値のみ編集可能にするか
 }
@@ -14,7 +14,6 @@ export default function SupplementalInfoFieldForm({ field, onSubmit, onCancel, v
   const [label, setLabel] = useState('');
   const [type, setType] = useState<FieldType>('text');
   const [value, setValue] = useState('');
-  const [usage, setUsage] = useState('');
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
@@ -22,13 +21,11 @@ export default function SupplementalInfoFieldForm({ field, onSubmit, onCancel, v
       setLabel(field.label);
       setType(field.type);
       setValue(field.value || '');
-      setUsage(field.usage || '');
       setFile(null);
     } else {
       setLabel('');
       setType('text');
       setValue('');
-      setUsage('');
       setFile(null);
     }
   }, [field]);
@@ -53,7 +50,6 @@ export default function SupplementalInfoFieldForm({ field, onSubmit, onCancel, v
       label: label.trim(),
       type,
       value: finalValue || undefined,
-      usage: usage.trim() || undefined,
     });
   };
 
@@ -145,31 +141,6 @@ export default function SupplementalInfoFieldForm({ field, onSubmit, onCancel, v
             className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none"
             placeholder="テキストを入力（任意）"
           />
-        </div>
-      )}
-      {!valueOnly && (
-        <div>
-          <label htmlFor="usage" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            用途
-          </label>
-          <input
-            type="text"
-            id="usage"
-            value={usage}
-            onChange={(e) => setUsage(e.target.value)}
-            className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-            placeholder="用途を入力（任意）"
-          />
-        </div>
-      )}
-      {valueOnly && usage && (
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            用途
-          </label>
-          <div className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
-            {usage}
-          </div>
         </div>
       )}
       <div className="flex gap-2 justify-end">

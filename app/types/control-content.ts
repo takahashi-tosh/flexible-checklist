@@ -14,6 +14,7 @@ export interface ControlContentField {
     evaluationProcess?: string;
     detectedItems?: string;
     evaluationDate?: string;
+    responsiblePerson?: string; // 担当者
   };
   createdAt: string;
   updatedAt: string;

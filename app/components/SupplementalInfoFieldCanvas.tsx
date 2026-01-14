@@ -112,32 +112,77 @@ function SortableField({
       </div>
 
       {isExpanded && (
-        <div className="p-4 space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              ラベル
-            </label>
-            <input
-              type="text"
-              value={field.label}
-              onChange={(e) => onUpdateField({ label: e.target.value })}
-              className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ラベルを入力"
-            />
+        <div className="p-4 space-y-4">
+          {/* 編集フォーム */}
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                ラベル
+              </label>
+              <input
+                type="text"
+                value={field.label}
+                onChange={(e) => onUpdateField({ label: e.target.value })}
+                className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ラベルを入力"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              用途
-            </label>
-            <input
-              type="text"
-              value={field.usage || ''}
-              onChange={(e) => onUpdateField({ usage: e.target.value })}
-              className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="用途を入力（任意）"
-            />
-          </div>
+          {/* プレビュー */}
+          {field.label.trim() && (
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-3">
+                プレビュー
+              </div>
+              <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800">
+
+                <div className="space-y-3">
+                  {field.type === 'text' && (
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                        値
+                      </label>
+                      <textarea
+                        disabled
+                        rows={3}
+                        className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                        placeholder="テキストを入力"
+                      />
+                    </div>
+                  )}
+
+                  {field.type === 'file' && (
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                        ファイル情報
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                        placeholder="ファイル名を入力"
+                      />
+                    </div>
+                  )}
+
+                  {field.type === 'evaluation' && (
+                    <div>
+                      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                        値
+                      </label>
+                      <input
+                        type="text"
+                        disabled
+                        className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 cursor-not-allowed"
+                        placeholder="評価を入力"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -167,7 +212,7 @@ export default function SupplementalInfoFieldCanvas({ fields, expandedFields, on
         </div>
       ) : (
         <SortableContext items={fields.map((_, i) => `field-${i}`)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {fields.map((field, index) => (
               <SortableField
                 key={`field-${index}`}

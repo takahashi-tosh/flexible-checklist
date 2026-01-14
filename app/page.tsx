@@ -182,7 +182,6 @@ export default function Home() {
           id: crypto.randomUUID(),
           label: fieldTemplate.label,
           type: fieldTemplate.type,
-          usage: fieldTemplate.usage,
           evaluationValue: fieldTemplate.evaluationDefaults ? {
             conclusion: fieldTemplate.evaluationDefaults.conclusion,
             evaluationProcess: fieldTemplate.evaluationDefaults.evaluationProcess,
@@ -197,7 +196,6 @@ export default function Home() {
           id: crypto.randomUUID(),
           label: fieldTemplate.label,
           type: fieldTemplate.type,
-          usage: fieldTemplate.usage,
           value: undefined,
           createdAt: now,
           updatedAt: now,

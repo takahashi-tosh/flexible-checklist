@@ -47,7 +47,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
   };
 
   return (
-    <div className="w-80 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 h-screen fixed left-0 top-0 overflow-y-auto">
+    <div className="w-80 bg-gray-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 h-screen fixed left-0 top-0 overflow-y-auto">
       <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,7 +72,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
 
       <div className="p-2">
         <div className="w-full flex items-center justify-between px-1 py-2 rounded-md text-sm transition-colors">
-          <span className="font-bold">大項目/中項目</span>
+          <span className="text-gray-500 dark:text-gray-400">大項目/中項目</span>
           <button
             onClick={() => onSelectView?.('categories')}
             className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
@@ -82,15 +82,6 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </button>
-        </div>
-      </div>
-
-      {/* 大項目ラベル */}
-      <div className="px-4 py-2 mt-2">
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded inline-block">
-            大項目
-          </div>
         </div>
       </div>
 
@@ -118,7 +109,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
                 </button>
                 <div
                   onClick={() => handleCategoryClick(parent.id)}
-                  className={`flex-1 px-2 py-1 rounded text-sm font-medium cursor-pointer transition-colors ${
+                  className={`flex-1 px-2 py-1 rounded text-sm font-bold cursor-pointer transition-colors ${
                     selectedCategoryId === parent.id
                       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                       : 'text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -128,15 +119,6 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
                 </div>
               </div>
 
-              {/* 中項目ラベル（子大項目/中項目がある場合のみ） */}
-              {isExpanded && children.length > 0 && (
-                <div className="ml-6 mt-2 mb-1">
-                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded inline-block">
-                    中項目
-                  </div>
-                </div>
-              )}
-
               {/* 中項目（子大項目/中項目） */}
               {isExpanded && children.length > 0 && (
                 <div className="ml-6 space-y-1 mt-1">
@@ -144,7 +126,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
                     <div
                       key={child.id}
                       onClick={() => handleCategoryClick(child.id)}
-                      className={`px-3 py-2 rounded text-sm cursor-pointer transition-colors ${
+                      className={`px-3 py-2 rounded text-sm cursor-pointer font-bold transition-colors ${
                         selectedCategoryId === child.id
                           ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-500'
                           : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -166,13 +148,13 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
       </div>
 
       <div className="p-2">
-        <div className="w-full text-left px-1 py-2 font-bold rounded-md text-sm transition-colors">
+        <div className="w-full text-left px-1 py-2 text-gray-500 dark:text-gray-400 rounded-md text-sm transition-colors">
           カスタムフォーム
         </div>
         <div className="space-y-1 mt-2">
           <button
             onClick={() => onSelectView?.('supplemental-info-templates')}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
               currentView === 'supplemental-info-templates'
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -182,7 +164,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
           </button>
           <button
             onClick={() => onSelectView?.('control-content-templates')}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
               currentView === 'control-content-templates'
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'

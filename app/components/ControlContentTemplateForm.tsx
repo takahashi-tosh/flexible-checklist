@@ -21,7 +21,6 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
     template?.fields?.map(f => ({ 
       label: f.label, 
       type: f.type, 
-      usage: f.usage,
       evaluationDefaults: f.evaluationDefaults,
     })) || []
   );
@@ -37,7 +36,6 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
       const loadedFields = (template.fields || []).map(f => ({ 
         label: f.label, 
         type: f.type, 
-        usage: f.usage,
         evaluationDefaults: f.evaluationDefaults,
       }));
       // eslint-disable-next-line react-compiler/react-compiler
@@ -51,7 +49,6 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
     const newField: Omit<ControlContentFieldTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
       label: '',
       type,
-      usage: undefined,
       evaluationDefaults: type === 'evaluation' ? {} : undefined,
     };
     const newFields = [...fields, newField];
@@ -165,7 +162,7 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
             <FieldTypePalette />
           </div>
 
-          {/* 右側: キャンバス */}
+          {/* 右側: キャンバス（プレビュー統合済み） */}
           <div className="col-span-9">
             <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
               フィールド構成

@@ -18,6 +18,7 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
   const [expandedFields, setExpandedFields] = useState<Set<number>>(new Set());
   const [templates, setTemplates] = useState<ControlContentTemplate[]>([]);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [fileMap, setFileMap] = useState<Map<number, File>>(new Map());
 
   useEffect(() => {
     const loadedTemplates = getControlContentTemplates();
@@ -42,7 +43,6 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
               id: crypto.randomUUID(),
               label: fieldTemplate.label,
               type: fieldTemplate.type,
-              usage: fieldTemplate.usage,
               evaluationValue: fieldTemplate.evaluationDefaults ? {
                 conclusion: fieldTemplate.evaluationDefaults.conclusion,
                 evaluationProcess: fieldTemplate.evaluationDefaults.evaluationProcess,
@@ -57,7 +57,6 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
               id: crypto.randomUUID(),
               label: fieldTemplate.label,
               type: fieldTemplate.type,
-              usage: fieldTemplate.usage,
               value: undefined,
               createdAt: now,
               updatedAt: now,
@@ -118,7 +117,6 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
           ...existingField,
           label: fieldTemplate.label,
           type: fieldTemplate.type,
-          usage: fieldTemplate.usage,
           updatedAt: now,
         };
       } else {
@@ -128,7 +126,6 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
             id: crypto.randomUUID(),
             label: fieldTemplate.label,
             type: fieldTemplate.type,
-            usage: fieldTemplate.usage,
             evaluationValue: fieldTemplate.evaluationDefaults ? {
               conclusion: fieldTemplate.evaluationDefaults.conclusion,
               evaluationProcess: fieldTemplate.evaluationDefaults.evaluationProcess,
@@ -143,7 +140,6 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
             id: crypto.randomUUID(),
             label: fieldTemplate.label,
             type: fieldTemplate.type,
-            usage: fieldTemplate.usage,
             value: undefined,
             createdAt: now,
             updatedAt: now,
@@ -247,7 +243,7 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
             テンプレートを選択してください。
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {fields.map((field, index) => (
               <div
                 key={field.id}
@@ -263,11 +259,6 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       {field.label}
                     </div>
-                    {field.usage && (
-                      <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                        用途: {field.usage}
-                      </div>
-                    )}
                   </div>
                   <button
                     type="button"
@@ -298,15 +289,25 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
                     {field.type === 'file' && (
                       <div>
                         <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                          ファイル情報
+                          ファイル
                         </label>
-                        <textarea
-                          value={field.value || ''}
-                          onChange={(e) => handleUpdateField(index, { value: e.target.value })}
-                          rows={2}
-                          className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                          placeholder="ファイル名やパスを入力"
+                        <input
+                          type="file"
+                          onChange={(e) => {
+                            const selectedFile = e.target.files?.[0];
+                            if (selectedFile) {
+                              setFileMap(prev => new Map(prev).set(index, selectedFile));
+                              handleUpdateField(index, { value: selectedFile.name });
+                            }
+                          }}
+                          className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        {field.value && (
+                          <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                            選択されたファイル: {field.value}
+                            {fileMap.get(index) && ` (${(fileMap.get(index)!.size / 1024).toFixed(2)} KB)`}
+                          </p>
+                        )}
                       </div>
                     )}
 
@@ -432,6 +433,24 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
                               },
                             })}
                             className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                            担当者
+                          </label>
+                          <input
+                            type="text"
+                            value={field.evaluationValue?.responsiblePerson || ''}
+                            onChange={(e) => handleUpdateField(index, {
+                              evaluationValue: {
+                                ...field.evaluationValue,
+                                responsiblePerson: e.target.value,
+                              },
+                            })}
+                            className="w-full px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="担当者を入力"
                           />
                         </div>
                       </div>

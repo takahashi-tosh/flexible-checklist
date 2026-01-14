@@ -18,7 +18,7 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
   const [name] = useState('補足情報');
   const [description, setDescription] = useState(template?.description || '');
   const [fields, setFields] = useState<Omit<SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>[]>(
-    template?.fields?.map(f => ({ label: f.label, type: f.type, usage: f.usage })) || []
+    template?.fields?.map(f => ({ label: f.label, type: f.type })) || []
   );
   const [expandedFields, setExpandedFields] = useState<Set<number>>(
     new Set(template?.fields?.map((_, index) => index) || [])
@@ -29,7 +29,7 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
     if (template) {
       // eslint-disable-next-line react-compiler/react-compiler
       setDescription(template.description || '');
-      const loadedFields = (template.fields || []).map(f => ({ label: f.label, type: f.type, usage: f.usage }));
+      const loadedFields = (template.fields || []).map(f => ({ label: f.label, type: f.type }));
       // eslint-disable-next-line react-compiler/react-compiler
       setFields(loadedFields);
       // eslint-disable-next-line react-compiler/react-compiler
@@ -41,7 +41,6 @@ export default function SupplementalInfoTemplateForm({ template, onSubmit, onCan
     const newField: Omit<SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'> = {
       label: '',
       type,
-      usage: undefined,
     };
     const newFields = [...fields, newField];
     setFields(newFields);

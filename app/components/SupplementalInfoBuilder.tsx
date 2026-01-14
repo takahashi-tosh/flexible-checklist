@@ -19,6 +19,7 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
   const [templates, setTemplates] = useState<SupplementalInfoTemplate[]>([]);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
+  const [fileMap, setFileMap] = useState<Map<string, File>>(new Map());
 
   useEffect(() => {
     setTemplates(getSupplementalInfoTemplates());
@@ -50,7 +51,6 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
           ...existingField,
           label: fieldTemplate.label,
           type: fieldTemplate.type,
-          usage: fieldTemplate.usage,
           updatedAt: now,
         };
       } else {
@@ -59,7 +59,6 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
           id: crypto.randomUUID(),
           label: fieldTemplate.label,
           type: fieldTemplate.type,
-          usage: fieldTemplate.usage,
           value: undefined,
           createdAt: now,
           updatedAt: now,
@@ -96,7 +95,7 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
     ));
   };
 
-  const handleFieldSubmit = (data: { label: string; type: 'file' | 'text' | 'evaluation'; value?: string; usage?: string }) => {
+  const handleFieldSubmit = (data: { label: string; type: 'file' | 'text' | 'evaluation'; value?: string }) => {
     const now = new Date().toISOString();
     if (editingField) {
       // 値のみ更新（ラベル、タイプ、用途はテンプレートから変更不可）
@@ -237,11 +236,6 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
                       <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
                         {field.label}
                       </h4>
-                      {field.usage && (
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2">
-                          用途: {field.usage}
-                        </p>
-                      )}
                       {!isExpanded && (
                         field.value ? (
                           <p className="text-sm text-zinc-900 dark:text-zinc-100">
@@ -280,13 +274,25 @@ export default function SupplementalInfoBuilder({ supplementalInfo, onSubmit, on
                         />
                       )}
                       {field.type === 'file' && (
-                        <input
-                          type="text"
-                          value={field.value || ''}
-                          onChange={(e) => handleFieldValueChange(field.id, e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="ファイル名を入力"
-                        />
+                        <div>
+                          <input
+                            type="file"
+                            onChange={(e) => {
+                              const selectedFile = e.target.files?.[0];
+                              if (selectedFile) {
+                                setFileMap(prev => new Map(prev).set(field.id, selectedFile));
+                                handleFieldValueChange(field.id, selectedFile.name);
+                              }
+                            }}
+                            className="w-full px-3 py-2 text-sm border border-zinc-300 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          {field.value && (
+                            <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
+                              選択されたファイル: {field.value}
+                              {fileMap.get(field.id) && ` (${(fileMap.get(field.id)!.size / 1024).toFixed(2)} KB)`}
+                            </p>
+                          )}
+                        </div>
                       )}
                       {field.type === 'evaluation' && (
                         <input

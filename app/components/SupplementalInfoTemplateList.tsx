@@ -48,11 +48,6 @@ export default function SupplementalInfoTemplateList({ templates, onEdit, onDele
                       <span className="text-zinc-500 dark:text-zinc-400 ml-2">
                         ({field.type === 'file' ? 'ファイル' : 'テキストフィールド'})
                       </span>
-                      {field.usage && (
-                        <span className="text-zinc-500 dark:text-zinc-400 ml-2">
-                          - {field.usage}
-                        </span>
-                      )}
                     </div>
                   ))}
                 </div>
