@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Category } from '../types/category';
 import { getChildCategories, getCategories } from '../lib/category-storage';
-import { getParentColumnLabel, getChildColumnLabel } from '../lib/category-settings';
 
 interface CategorySidebarProps {
   selectedCategoryId: string | null;
@@ -14,14 +13,16 @@ interface CategorySidebarProps {
 }
 
 export default function CategorySidebar({ selectedCategoryId, onSelectCategory, refreshTrigger, onSelectView, currentView }: CategorySidebarProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<Category[]>(() => getCategories());
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(() => {
+    const parents = getCategories().filter(cat => !cat.parentId);
+    return new Set(parents.map(p => p.id));
+  });
 
   useEffect(() => {
-    setCategories(getCategories());
-    // 初期状態で全ての大項目を展開
-    const parents = getCategories().filter(cat => !cat.parentId);
-    setExpandedParents(new Set(parents.map(p => p.id)));
+    // refreshTriggerが変更されたときのみカテゴリを再読み込み
+    const updatedCategories = getCategories();
+    setCategories(updatedCategories);
   }, [refreshTrigger]);
 
   const parentCategories = categories.filter(cat => !cat.parentId);
@@ -48,7 +49,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
 
   return (
     <div className="w-80 bg-gray-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 h-screen fixed left-0 top-0 overflow-y-auto">
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" onClick={handleAllClick}>
         <div className="flex items-center gap-2">
           <svg className="w-5 h-5 text-zinc-600 dark:text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -97,7 +98,7 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
               <div className="flex items-start gap-1">
                 <button
                   onClick={() => toggleParent(parent.id)}
-                  className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors flex-shrink-0"
+                  className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors shrink-0"
                 >
                   <svg 
                     className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${isExpanded ? 'rotate-0' : '-rotate-90'}`}
@@ -154,23 +155,31 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
         <div className="space-y-1 mt-2">
           <button
             onClick={() => onSelectView?.('control-content-templates')}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors flex items-center gap-2 ${
               currentView === 'control-content-templates'
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
             }`}
           >
+            <span className="text-base shrink-0">📋</span>
             統制内容
           </button>
           <button
             onClick={() => onSelectView?.('supplemental-info-templates')}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors flex items-center gap-2 ${
               currentView === 'supplemental-info-templates'
                 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
                 : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
             }`}
           >
-            評価項目の補足
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+              currentView === 'supplemental-info-templates'
+                ? 'bg-blue-500 dark:bg-blue-600 text-white'
+                : 'bg-gray-400 dark:bg-gray-500 text-white'
+            }`}>
+              i
+            </div>
+            補足情報
           </button>
         </div>
       </div>

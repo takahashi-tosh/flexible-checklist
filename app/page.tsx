@@ -29,16 +29,16 @@ type ViewMode = 'items' | 'categories' | 'supplemental-info-templates' | 'contro
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>('items');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [items, setItems] = useState<EvaluationItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [items, setItems] = useState<EvaluationItem[]>(() => getEvaluationItems());
+  const [categories, setCategories] = useState<Category[]>(() => getCategories());
   const [editingItem, setEditingItem] = useState<EvaluationItem | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [editingControlContent, setEditingControlContent] = useState<ControlContent | null>(null);
   const [editingControlContentItemId, setEditingControlContentItemId] = useState<string | null>(null);
   const [editingSupplementalInfoItemId, setEditingSupplementalInfoItemId] = useState<string | null>(null);
-  const [supplementalInfoTemplates, setSupplementalInfoTemplates] = useState<SupplementalInfoTemplate[]>([]);
+  const [supplementalInfoTemplates, setSupplementalInfoTemplates] = useState<SupplementalInfoTemplate[]>(() => getSupplementalInfoTemplates());
   const [editingSupplementalInfoTemplate, setEditingSupplementalInfoTemplate] = useState<SupplementalInfoTemplate | null>(null);
-  const [controlContentTemplates, setControlContentTemplates] = useState<ControlContentTemplate[]>([]);
+  const [controlContentTemplates, setControlContentTemplates] = useState<ControlContentTemplate[]>(() => getControlContentTemplates());
   const [editingControlContentTemplate, setEditingControlContentTemplate] = useState<ControlContentTemplate | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showControlContentForm, setShowControlContentForm] = useState(false);
@@ -46,32 +46,16 @@ export default function Home() {
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
   const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(undefined);
 
+  // 補足情報ビューに切り替えたときに、テンプレートが存在する場合は自動的に編集モードで表示
   useEffect(() => {
-    setItems(getEvaluationItems());
-    setCategories(getCategories());
-    const supplementalTemplates = getSupplementalInfoTemplates();
-    setSupplementalInfoTemplates(supplementalTemplates);
-    const controlTemplates = getControlContentTemplates();
-    setControlContentTemplates(controlTemplates);
-  }, []);
-
-  // 評価項目の補足ビューに切り替えたときに、テンプレートが存在する場合は自動的に編集モードで表示
-  useEffect(() => {
-    if (viewMode === 'supplemental-info-templates' && !showForm) {
+    if (viewMode === 'supplemental-info-templates' && !showForm && !editingSupplementalInfoTemplate) {
       const templates = getSupplementalInfoTemplates();
       if (templates.length > 0) {
         setEditingSupplementalInfoTemplate(templates[0]);
         setShowForm(true);
       }
     }
-  }, [viewMode]);
-
-  // 大項目/中項目が変更されたときにサイドバーを更新
-  useEffect(() => {
-    if (viewMode === 'items') {
-      setCategories(getCategories());
-    }
-  }, [viewMode]);
+  }, [viewMode, showForm, editingSupplementalInfoTemplate]);
 
   // 選択された大項目/中項目の情報を取得
   const selectedCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
@@ -285,7 +269,7 @@ export default function Home() {
     // テンプレートを取得
     const templates = getSupplementalInfoTemplates();
     if (templates.length === 0) {
-      alert('評価項目の補足がありません。先にテンプレートを作成してください。');
+      alert('補足情報がありません。先にテンプレートを作成してください。');
       return;
     }
 
@@ -366,9 +350,8 @@ export default function Home() {
   }) => {
     if (editingControlContentTemplate) {
       updateControlContentTemplate(editingControlContentTemplate.id, data);
-      setControlContentTemplates(getControlContentTemplates());
-      setEditingControlContentTemplate(null);
-      setShowForm(false);
+      // ページを強制的にリロード（キャッシュをクリア）
+      window.location.reload();
     }
   };
 
@@ -396,9 +379,8 @@ export default function Home() {
   const handleSupplementalInfoTemplateUpdate = (data: { name: string; description?: string; fields: Omit<import('./types/supplemental-info-template').SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>[] }) => {
     if (editingSupplementalInfoTemplate) {
       updateSupplementalInfoTemplate(editingSupplementalInfoTemplate.id, data);
-      setSupplementalInfoTemplates(getSupplementalInfoTemplates());
-      setEditingSupplementalInfoTemplate(null);
-      setShowForm(false);
+      // ページを強制的にリロード（キャッシュをクリア）
+      window.location.reload();
     }
   };
 
@@ -444,13 +426,8 @@ export default function Home() {
   const handleImportSeedData = () => {
     if (confirm('seedデータをインポートしますか？既存のデータはすべて削除されます。')) {
       resetAndImportSeedData();
-      // すべてのデータを再読み込み
-      setItems(getEvaluationItems());
-      setCategories(getCategories());
-      setSupplementalInfoTemplates(getSupplementalInfoTemplates());
-      setControlContentTemplates(getControlContentTemplates());
-      setSidebarRefreshTrigger(prev => prev + 1);
-      alert('seedデータをインポートしました');
+      // ページを強制的にリロード（キャッシュをクリア）
+      window.location.reload();
     }
   };
 
@@ -617,7 +594,7 @@ export default function Home() {
                   {/* フローティングボタン */}
                   <button
                     onClick={handleResetAllData}
-                    className="fixed bottom-8 right-80 px-6 py-3 bg-gray-100 dark:bg-gray-200 text-white rounded-full shadow-lg hover:bg-gray-200 dark:hover:bg-gray-100 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
+                    className="fixed bottom-8 right-90 px-6 py-3 bg-gray-100 dark:bg-gray-200 text-white rounded-full shadow-lg hover:bg-gray-200 dark:hover:bg-gray-100 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
                     title="データをリセット"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
@@ -633,7 +610,7 @@ export default function Home() {
                     <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span className='text-gray-500'>seedデータをインポート</span>
+                    <span className='text-gray-500'>サンプル(FCRP)をインポート</span>
                   </button>
                 </>
               )}
@@ -650,12 +627,6 @@ export default function Home() {
                 <div className="flex gap-2">
                   {!showForm && (
                     <>
-                      <button
-                        onClick={handleImportSeedData}
-                        className="px-4 py-2 text-sm font-medium text-white bg-green-600 dark:bg-green-500 rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
-                      >
-                        seedデータをインポート
-                      </button>
                       <button
                         onClick={() => {
                           setEditingCategory(null);
@@ -701,11 +672,11 @@ export default function Home() {
             </div>
           )}
 
-          {/* 評価項目の補足管理ビュー */}
+          {/* 補足情報管理ビュー */}
           {viewMode === 'supplemental-info-templates' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
               <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
-                評価項目の補足管理
+                補足情報管理
               </h1>
 
               {showForm ? (
@@ -729,7 +700,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-                  評価項目の補足がありません。新規作成してください。
+                  補足情報がありません。新規作成してください。
                 </div>
               )}
             </div>

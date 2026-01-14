@@ -13,7 +13,7 @@ export default function SupplementalInfoTemplateList({ templates, onEdit, onDele
   if (templates.length === 0) {
     return (
       <div className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-        評価項目の補足がありません。新規作成してください。
+        補足情報がありません。新規作成してください。
       </div>
     );
   }

@@ -1,13 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { EvaluationItem } from '../types/evaluation-item';
 import { getCategories } from '../lib/category-storage';
 import { Category } from '../types/category';
 import ControlContentList from './ControlContentList';
 import { ControlContent } from '../types/control-content';
-import { SupplementalInfo } from '../types/supplemental-info';
-import { formatDateTime } from '../lib/date-format';
 
 interface EvaluationItemListProps {
   items: EvaluationItem[];
@@ -21,38 +19,8 @@ interface EvaluationItemListProps {
   onDeleteSupplementalInfo?: (itemId: string) => void;
 }
 
-function getCategoryLabel(categoryId: string | undefined, allCategories: Category[]): string | null {
-  if (!categoryId) return null;
-  const category = allCategories.find(c => c.id === categoryId);
-  if (!category) return null;
-  
-  if (!category.parentId) {
-    return category.label;
-  }
-  
-  const parent = allCategories.find(c => c.id === category.parentId);
-  return parent ? `${parent.label} > ${category.label}` : category.label;
-}
-
 export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, onAddControlContent, onEditControlContent, onDeleteControlContent, onEditSupplementalInfo, onDeleteSupplementalInfo }: EvaluationItemListProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [expandedSupplementalInfo, setExpandedSupplementalInfo] = useState<Set<string>>(new Set());
-  
-  useEffect(() => {
-    setCategories(getCategories());
-  }, []);
-
-  const toggleSupplementalInfo = (itemId: string) => {
-    setExpandedSupplementalInfo(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId);
-      } else {
-        newSet.add(itemId);
-      }
-      return newSet;
-    });
-  };
+  const [categories] = useState<Category[]>(() => getCategories());
 
   if (items.length === 0) {
     return (
@@ -68,10 +36,10 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
           評価項目がありません。
           {onCreate ? (
             <button
-              onClick={onCreate}
+              onClick={() => onCreate()}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline ml-1 font-medium"
             >
-              新規作成
+              新たに追加する
             </button>
           ) : (
             <span className="ml-1">新規作成してください。</span>
@@ -138,8 +106,6 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
                   onEditControlContent={onEditControlContent}
                   onDeleteControlContent={onDeleteControlContent}
                   onAddControlContent={onAddControlContent}
-                  expandedSupplementalInfo={expandedSupplementalInfo}
-                  toggleSupplementalInfo={toggleSupplementalInfo}
                 />
               </div>
             ))}
@@ -179,8 +145,6 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
                     onDeleteControlContent={onDeleteControlContent}
                     onAddControlContent={onAddControlContent}
                     onCreate={onCreate}
-                    expandedSupplementalInfo={expandedSupplementalInfo}
-                    toggleSupplementalInfo={toggleSupplementalInfo}
                   />
                 ))}
               </div>
@@ -193,7 +157,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
               return (
                 <div key={childId} className="mb-6">
                   {/* 中項目ヘッダー */}
-                  <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-lg text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-3 pb-1  scroll-mt-16">
+                  <h3 id={`category-${childId}`} className="sticky top-13 z-10 text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 pb-1 scroll-mt-16">
                     {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
                   </h3>
 
@@ -212,8 +176,6 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
                         onDeleteControlContent={onDeleteControlContent}
                         onAddControlContent={onAddControlContent}
                         onCreate={onCreate}
-                        expandedSupplementalInfo={expandedSupplementalInfo}
-                        toggleSupplementalInfo={toggleSupplementalInfo}
                       />
                     ))}
                   </div>
@@ -239,8 +201,6 @@ interface ItemCardProps {
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
   onAddControlContent?: (itemId: string) => void;
   onCreate?: (categoryId?: string) => void;
-  expandedSupplementalInfo: Set<string>;
-  toggleSupplementalInfo: (itemId: string) => void;
 }
 
 function ItemCard({ 
@@ -253,9 +213,7 @@ function ItemCard({
   onEditControlContent,
   onDeleteControlContent,
   onAddControlContent,
-  onCreate,
-  expandedSupplementalInfo,
-  toggleSupplementalInfo
+  onCreate
 }: ItemCardProps) {
   const [isCardHovering, setIsCardHovering] = useState(false);
 
@@ -278,8 +236,6 @@ function ItemCard({
           onEditControlContent={onEditControlContent}
           onDeleteControlContent={onDeleteControlContent}
           onAddControlContent={onAddControlContent}
-          expandedSupplementalInfo={expandedSupplementalInfo}
-          toggleSupplementalInfo={toggleSupplementalInfo}
         />
       </div>
       
@@ -313,8 +269,6 @@ interface ItemContentProps {
   onEditControlContent?: (itemId: string, controlContent: ControlContent) => void;
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
   onAddControlContent?: (itemId: string) => void;
-  expandedSupplementalInfo: Set<string>;
-  toggleSupplementalInfo: (itemId: string) => void;
 }
 
 function ItemContent({ 
@@ -326,13 +280,13 @@ function ItemContent({
   onDeleteSupplementalInfo,
   onEditControlContent,
   onDeleteControlContent,
-  onAddControlContent,
-  expandedSupplementalInfo,
-  toggleSupplementalInfo
+  onAddControlContent
 }: ItemContentProps) {
   const [isHovering, setIsHovering] = useState(false);
+  const [isSupplementalInfoHovering, setIsSupplementalInfoHovering] = useState(false);
   const hasControlContent = item.controlContents && item.controlContents.length > 0;
   const canAddControlContent = onAddControlContent && !hasControlContent;
+  const hasSupplementalInfo = item.supplementalInfo && item.supplementalInfo.fields && item.supplementalInfo.fields.length > 0;
 
   return (
     <div>
@@ -353,7 +307,7 @@ function ItemContent({
           >
             {canAddControlContent && (
               <div
-                className={`flex-shrink-0 p-1 text-blue-600 dark:text-blue-400 rounded transition-all ${
+                className={`shrink-0 p-1 text-blue-600 dark:text-blue-400 rounded transition-all ${
                   isHovering ? 'opacity-100' : 'opacity-0'
                 }`}
                 title="統制内容を追加"
@@ -366,9 +320,84 @@ function ItemContent({
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               {item.name}
             </h3>
+            
+            {/* 補足情報アイコン */}
+            {hasSupplementalInfo && (
+              <div 
+                className="relative shrink-0"
+                onMouseEnter={() => setIsSupplementalInfoHovering(true)}
+                onMouseLeave={() => setIsSupplementalInfoHovering(false)}
+              >
+                <div className="w-5 h-5 rounded-full bg-gray-400 dark:bg-gray-500 text-white flex items-center justify-center text-xs font-bold cursor-help">
+                  i
+                </div>
+                
+                {/* ツールチップ */}
+                {isSupplementalInfoHovering && (
+                  <div className="absolute left-0 top-full mt-2 w-80 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl z-50 p-4 animate-fadeIn">
+                    <div className="absolute -top-2 left-3 w-4 h-4 bg-white dark:bg-zinc-800 border-l border-t border-zinc-200 dark:border-zinc-700 transform rotate-45"></div>
+                    <div className="flex items-center justify-between mb-3 border-b border-zinc-200 dark:border-zinc-700 pb-2">
+                      <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                        補足情報
+                      </h4>
+                      <div className="flex items-center gap-1">
+                        {onEditSupplementalInfo && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditSupplementalInfo(item.id);
+                            }}
+                            className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                            title="編集"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
+                        {onDeleteSupplementalInfo && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('補足情報を削除しますか？')) {
+                                onDeleteSupplementalInfo(item.id);
+                              }
+                            }}
+                            className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                            title="削除"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {item.supplementalInfo?.fields.map((field) => (
+                        <div key={field.id} className="border-b border-zinc-100 dark:border-zinc-700 last:border-b-0 pb-2 last:pb-0">
+                          <div className="mb-1">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-400">
+                              {field.label}
+                            </span>
+                          </div>
+                          {field.value ? (
+                            <p className="text-xs text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
+                              {field.value}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500 italic">未入力</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
-            {(!item.supplementalInfo || !item.supplementalInfo.fields || item.supplementalInfo.fields.length === 0) && onEditSupplementalInfo && (
+            {!hasSupplementalInfo && onEditSupplementalInfo && (
               <button
                 onClick={() => onEditSupplementalInfo(item.id)}
                 className="px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
@@ -405,92 +434,6 @@ function ItemContent({
             {item.description}
           </p>
         )} */}
-        
-        {/* 補足情報 */}
-        {item.supplementalInfo && item.supplementalInfo.fields && item.supplementalInfo.fields.length > 0 && (
-          <div className="mt-1 mb-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">補足情報</h4>
-              <div className="flex items-center gap-2">
-                {onEditSupplementalInfo && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditSupplementalInfo(item.id);
-                    }}
-                    className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                    title="編集"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                )}
-                {onDeleteSupplementalInfo && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // アコーディオンの開閉を防ぐ
-                      if (confirm('補足情報を削除しますか？')) {
-                        onDeleteSupplementalInfo(item.id);
-                      }
-                    }}
-                    className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                    title="削除"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* コンテンツエリア: クリックで展開/折り畳み */}
-            <div 
-              onClick={() => toggleSupplementalInfo(item.id)}
-              className={`relative cursor-pointer transition-all duration-300 ease-in-out overflow-hidden ${
-                expandedSupplementalInfo.has(item.id) ? 'max-h-[2000px]' : 'max-h-[100px]'
-              }`}
-            >
-              <div className="space-y-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg p-3">
-                {item.supplementalInfo.fields.map((field) => (
-                  <div key={field.id} className="border-b border-zinc-200 dark:border-zinc-700 last:border-b-0 pb-2 last:pb-0">
-                    <div className="mb-1">
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-zinc-500 dark:text-zinc-400">
-                        {field.label}
-                      </span>
-                    </div>
-                    {field.value ? (
-                      <p className="text-sm text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
-                        {field.value}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-zinc-400 dark:text-zinc-500 italic">未入力</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* 閉じた状態の時のグラデーションカバーと「もっと見る」表示 */}
-              {!expandedSupplementalInfo.has(item.id) && (
-                <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-zinc-50 dark:from-zinc-800/80 to-transparent flex items-end justify-center pb-1">
-                  <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
-                    クリックで展開 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </span>
-                </div>
-              )}
-              
-              {/* 展開時の「閉じる」表示（任意） */}
-              {expandedSupplementalInfo.has(item.id) && (
-                <div className="mt-2 flex justify-center">
-                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 flex items-center gap-1">
-                    クリックで折りたたむ <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
         
         {/* <div className="text-xs text-zinc-400 dark:text-zinc-500">
           作成: {formatDateTime(item.createdAt)}

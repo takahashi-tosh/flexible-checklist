@@ -43,7 +43,14 @@ export default function ControlContentList({ controlContents, onEdit, onDelete, 
                 className="px-4 py-2 text-left text-xs font-medium text-zinc-700 dark:text-zinc-300 border-b border-zinc-200 dark:border-zinc-700"
                 style={{ width: `${calculateWidth(field.type)}px` }}
               >
-                {index === 0 ? '統制内容 / ' : ''}{field.label}
+                {index === 0 ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-base">📋</span>
+                    <span>統制内容 / {field.label}</span>
+                  </span>
+                ) : (
+                  field.label
+                )}
               </th>
             ))}
             {/* 操作列のヘッダー */}
