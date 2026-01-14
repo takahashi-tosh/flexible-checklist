@@ -583,6 +583,7 @@ export default function Home() {
                     items={items}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onCreate={handleNewClick}
                     onAddControlContent={handleAddControlContent}
                     onEditControlContent={handleEditControlContent}
                     onDeleteControlContent={handleDeleteControlContent}

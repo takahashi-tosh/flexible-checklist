@@ -13,6 +13,7 @@ interface EvaluationItemListProps {
   items: EvaluationItem[];
   onEdit: (item: EvaluationItem) => void;
   onDelete: (id: string) => void;
+  onCreate?: () => void;
   onAddControlContent?: (itemId: string) => void;
   onEditControlContent?: (itemId: string, controlContent: ControlContent) => void;
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
@@ -33,7 +34,7 @@ function getCategoryLabel(categoryId: string | undefined, allCategories: Categor
   return parent ? `${parent.label} > ${category.label}` : category.label;
 }
 
-export default function EvaluationItemList({ items, onEdit, onDelete, onAddControlContent, onEditControlContent, onDeleteControlContent, onEditSupplementalInfo, onDeleteSupplementalInfo }: EvaluationItemListProps) {
+export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, onAddControlContent, onEditControlContent, onDeleteControlContent, onEditSupplementalInfo, onDeleteSupplementalInfo }: EvaluationItemListProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [expandedSupplementalInfo, setExpandedSupplementalInfo] = useState<Set<string>>(new Set());
   
@@ -63,7 +64,19 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onAddContr
             className="w-full max-w-5xl"
           />
         </div>
-        <div className='text-center py-12 text-zinc-500 dark:text-zinc-400'>評価項目がありません。新規作成してください。</div>
+        <div className='text-center py-12 text-zinc-500 dark:text-zinc-400'>
+          評価項目がありません。
+          {onCreate ? (
+            <button
+              onClick={onCreate}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline ml-1 font-medium"
+            >
+              新規作成
+            </button>
+          ) : (
+            <span className="ml-1">新規作成してください。</span>
+          )}
+        </div>
 
       </div>
       
