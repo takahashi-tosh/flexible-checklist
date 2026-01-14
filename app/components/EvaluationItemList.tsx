@@ -13,7 +13,7 @@ interface EvaluationItemListProps {
   items: EvaluationItem[];
   onEdit: (item: EvaluationItem) => void;
   onDelete: (id: string) => void;
-  onCreate?: () => void;
+  onCreate?: (categoryId?: string) => void;
   onAddControlContent?: (itemId: string) => void;
   onEditControlContent?: (itemId: string, controlContent: ControlContent) => void;
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
@@ -165,26 +165,23 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
 
             {/* 大項目に直接紐づいている評価項目 */}
             {group.uncategorizedItems.length > 0 && (
-              <div className="mb-6 space-y-4">
+              <div className="mb-6 space-y-8">
                 {group.uncategorizedItems.map((item) => (
-                  <div
+                  <ItemCard
                     key={item.id}
-                    className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 bg-white dark:bg-zinc-900 hover:shadow-md transition-shadow"
-                  >
-                    <ItemContent 
-                      item={item}
-                      categoryLabel={null}
-                      onEdit={onEdit}
-                      onDelete={onDelete}
-                      onEditSupplementalInfo={onEditSupplementalInfo}
-                      onDeleteSupplementalInfo={onDeleteSupplementalInfo}
-                      onEditControlContent={onEditControlContent}
-                      onDeleteControlContent={onDeleteControlContent}
-                      onAddControlContent={onAddControlContent}
-                      expandedSupplementalInfo={expandedSupplementalInfo}
-                      toggleSupplementalInfo={toggleSupplementalInfo}
-                    />
-                  </div>
+                    item={item}
+                    categoryLabel={null}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onEditSupplementalInfo={onEditSupplementalInfo}
+                    onDeleteSupplementalInfo={onDeleteSupplementalInfo}
+                    onEditControlContent={onEditControlContent}
+                    onDeleteControlContent={onDeleteControlContent}
+                    onAddControlContent={onAddControlContent}
+                    onCreate={onCreate}
+                    expandedSupplementalInfo={expandedSupplementalInfo}
+                    toggleSupplementalInfo={toggleSupplementalInfo}
+                  />
                 ))}
               </div>
             )}
@@ -196,31 +193,28 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
               return (
                 <div key={childId} className="mb-6">
                   {/* 中項目ヘッダー */}
-                  <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-base font-semibold text-zinc-700 dark:text-zinc-300 mb-3 pb-1  scroll-mt-16">
+                  <h3 id={`category-${childId}`} className="sticky top-[52px] z-10 text-lg text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-3 pb-1  scroll-mt-16">
                     {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
                   </h3>
 
                   {/* 評価項目リスト */}
-                  <div className="space-y-4">
+                  <div className="space-y-8">
                     {childData.items.map((item) => (
-                      <div
+                      <ItemCard
                         key={item.id}
-                        className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 bg-white dark:bg-zinc-900 hover:shadow-md transition-shadow"
-                      >
-                        <ItemContent 
-                          item={item}
-                          categoryLabel={null}
-                          onEdit={onEdit}
-                          onDelete={onDelete}
-                          onEditSupplementalInfo={onEditSupplementalInfo}
-                          onDeleteSupplementalInfo={onDeleteSupplementalInfo}
-                          onEditControlContent={onEditControlContent}
-                          onDeleteControlContent={onDeleteControlContent}
-                          onAddControlContent={onAddControlContent}
-                          expandedSupplementalInfo={expandedSupplementalInfo}
-                          toggleSupplementalInfo={toggleSupplementalInfo}
-                        />
-                      </div>
+                        item={item}
+                        categoryLabel={null}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onEditSupplementalInfo={onEditSupplementalInfo}
+                        onDeleteSupplementalInfo={onDeleteSupplementalInfo}
+                        onEditControlContent={onEditControlContent}
+                        onDeleteControlContent={onDeleteControlContent}
+                        onAddControlContent={onAddControlContent}
+                        onCreate={onCreate}
+                        expandedSupplementalInfo={expandedSupplementalInfo}
+                        toggleSupplementalInfo={toggleSupplementalInfo}
+                      />
                     ))}
                   </div>
                 </div>
@@ -229,6 +223,81 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// カードをラップするコンポーネント（ホバー時に下部にボタンを表示）
+interface ItemCardProps {
+  item: EvaluationItem;
+  categoryLabel: string | null;
+  onEdit: (item: EvaluationItem) => void;
+  onDelete: (id: string) => void;
+  onEditSupplementalInfo?: (itemId: string) => void;
+  onDeleteSupplementalInfo?: (itemId: string) => void;
+  onEditControlContent?: (itemId: string, controlContent: ControlContent) => void;
+  onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
+  onAddControlContent?: (itemId: string) => void;
+  onCreate?: (categoryId?: string) => void;
+  expandedSupplementalInfo: Set<string>;
+  toggleSupplementalInfo: (itemId: string) => void;
+}
+
+function ItemCard({ 
+  item,
+  categoryLabel,
+  onEdit, 
+  onDelete, 
+  onEditSupplementalInfo, 
+  onDeleteSupplementalInfo,
+  onEditControlContent,
+  onDeleteControlContent,
+  onAddControlContent,
+  onCreate,
+  expandedSupplementalInfo,
+  toggleSupplementalInfo
+}: ItemCardProps) {
+  const [isCardHovering, setIsCardHovering] = useState(false);
+
+  return (
+    <div 
+      className="relative group mb-4"
+      onMouseEnter={() => setIsCardHovering(true)}
+      onMouseLeave={() => setIsCardHovering(false)}
+    >
+      <div
+        className="border-b pb-3 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+      >
+        <ItemContent 
+          item={item}
+          categoryLabel={categoryLabel}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onEditSupplementalInfo={onEditSupplementalInfo}
+          onDeleteSupplementalInfo={onDeleteSupplementalInfo}
+          onEditControlContent={onEditControlContent}
+          onDeleteControlContent={onDeleteControlContent}
+          onAddControlContent={onAddControlContent}
+          expandedSupplementalInfo={expandedSupplementalInfo}
+          toggleSupplementalInfo={toggleSupplementalInfo}
+        />
+      </div>
+      
+      {/* ホバー時に表示される「評価項目を追加」ボタン */}
+      {onCreate && isCardHovering && (
+        <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 z-50">
+          <button
+            onClick={() => onCreate(item.categoryId)}
+            className="px-4 py-1.5 bg-gray-600 dark:bg-gray-500 text-white text-sm font-medium rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-all hover:scale-105 flex items-center gap-1.5 whitespace-nowrap"
+            title="評価項目を追加"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>評価項目を追加</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -294,7 +363,7 @@ function ItemContent({
                 </svg>
               </div>
             )}
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               {item.name}
             </h3>
           </div>

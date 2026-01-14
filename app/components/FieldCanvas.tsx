@@ -273,14 +273,14 @@ export default function FieldCanvas({ fields, expandedFields, onToggleExpand, on
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-100 p-4 border-2 border-dashed rounded-lg transition-colors ${
+      className={`min-h-[400px] p-4 border-2 border-dashed rounded-lg transition-colors ${
         isOver
           ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20'
           : 'border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900'
       }`}
     >
       {fields.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-zinc-400 dark:text-zinc-500">
+        <div className="h-full min-h-[350px] flex items-center justify-center text-zinc-400 dark:text-zinc-500">
           <div className="text-center">
             <div className="text-4xl mb-2">📋</div>
             <p className="text-sm">コンポーネントをドラッグして配置</p>
@@ -288,7 +288,7 @@ export default function FieldCanvas({ fields, expandedFields, onToggleExpand, on
         </div>
       ) : (
         <SortableContext items={fields.map((_, i) => `field-${i}`)} strategy={verticalListSortingStrategy}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="m-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {fields.map((field, index) => (
               <SortableField
                 key={`field-${index}`}

@@ -1,4 +1,5 @@
 import { SupplementalInfoTemplate } from '../types/supplemental-info-template';
+import { getEvaluationItems, updateEvaluationItem } from './storage';
 
 const STORAGE_KEY = 'supplemental-info-templates';
 
@@ -71,7 +72,7 @@ export function updateSupplementalInfoTemplate(id: string, updates: {
   }
   
   const now = new Date().toISOString();
-  templates[index] = {
+  const updatedTemplate: SupplementalInfoTemplate = {
     ...templates[index],
     ...updates,
     fields: updates.fields ? updates.fields.map(field => ({
@@ -83,8 +84,76 @@ export function updateSupplementalInfoTemplate(id: string, updates: {
     updatedAt: now,
   };
   
+  templates[index] = updatedTemplate;
   saveSupplementalInfoTemplates(templates);
+  
+  // フィールドが更新された場合、既存の補足情報にも反映
+  if (updates.fields) {
+    syncSupplementalInfoToTemplate(updatedTemplate);
+  }
+  
   return templates[index];
+}
+
+// テンプレートの変更を既存の補足情報に反映する
+function syncSupplementalInfoToTemplate(template: SupplementalInfoTemplate): void {
+  const items = getEvaluationItems();
+  const now = new Date().toISOString();
+  
+  items.forEach(item => {
+    if (!item.supplementalInfo || !item.supplementalInfo.fields) {
+      return;
+    }
+    
+    // テンプレートのフィールドと既存のフィールドを比較
+    const templateFieldLabels = template.fields.map(f => f.label);
+    const existingFieldLabels = item.supplementalInfo.fields.map(f => f.label);
+    
+    // フィールドの追加・削除が必要かチェック
+    const needsSync = 
+      templateFieldLabels.length !== existingFieldLabels.length ||
+      !templateFieldLabels.every(label => existingFieldLabels.includes(label));
+    
+    if (!needsSync) {
+      return;
+    }
+    
+    // 既存のフィールドをマップに変換（labelをキーとして保持）
+    const existingFieldsMap = new Map(
+      item.supplementalInfo.fields.map(field => [field.label, field])
+    );
+    
+    // テンプレートに基づいて新しいフィールド配列を作成
+    const newFields = template.fields.map(templateField => {
+      const existingField = existingFieldsMap.get(templateField.label);
+      
+      if (existingField) {
+        // 既存のフィールドがある場合は、データを保持してtypeを更新
+        return {
+          ...existingField,
+          type: templateField.type,
+          updatedAt: now,
+        };
+      } else {
+        // 新しいフィールドの場合は、テンプレートから作成
+        return {
+          id: crypto.randomUUID(),
+          label: templateField.label,
+          type: templateField.type,
+          value: undefined,
+          createdAt: now,
+          updatedAt: now,
+        };
+      }
+    });
+    
+    const updatedSupplementalInfo = {
+      ...item.supplementalInfo,
+      fields: newFields,
+    };
+    
+    updateEvaluationItem(item.id, { supplementalInfo: updatedSupplementalInfo });
+  });
 }
 
 export function deleteSupplementalInfoTemplate(id: string): boolean {

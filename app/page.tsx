@@ -3,15 +3,14 @@
 import { useState, useEffect } from 'react';
 import { EvaluationItem } from './types/evaluation-item';
 import { Category } from './types/category';
-import { getEvaluationItems, createEvaluationItem, updateEvaluationItem, deleteEvaluationItem, initializeSampleData } from './lib/storage';
+import { getEvaluationItems, createEvaluationItem, updateEvaluationItem, deleteEvaluationItem } from './lib/storage';
 import { getCategories, createCategory, updateCategory, deleteCategory, getCategoryById } from './lib/category-storage';
-import { sampleEvaluationItems } from './lib/sample-data';
+import { resetAndImportSeedData } from './lib/seed-data-import';
 import EvaluationItemList from './components/EvaluationItemList';
 import EvaluationItemForm from './components/EvaluationItemForm';
 import CategoryList from './components/CategoryList';
 import CategoryForm from './components/CategoryForm';
 import CategorySidebar from './components/CategorySidebar';
-import CategorySettingsForm from './components/CategorySettingsForm';
 import ControlContentForm from './components/ControlContentForm';
 import SupplementalInfoBuilder from './components/SupplementalInfoBuilder';
 import SupplementalInfoTemplateList from './components/SupplementalInfoTemplateList';
@@ -45,6 +44,7 @@ export default function Home() {
   const [showControlContentForm, setShowControlContentForm] = useState(false);
   const [showSupplementalInfoForm, setShowSupplementalInfoForm] = useState(false);
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
+  const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     setItems(getEvaluationItems());
@@ -416,16 +416,41 @@ export default function Home() {
     }
   };
 
-  const handleNewClick = () => {
+  const handleNewClick = (categoryId?: string) => {
     setEditingItem(null);
     setEditingCategory(null);
+    setDefaultCategoryId(categoryId);
     setShowForm(true);
   };
 
-  const handleInitializeSampleData = () => {
-    if (confirm('サンプルデータで初期化しますか？既存のデータはすべて削除されます。')) {
-      initializeSampleData(sampleEvaluationItems);
+  const handleResetAllData = () => {
+    if (confirm('すべてのデータをリセットしますか？この操作は取り消せません。')) {
+      // すべてのlocalStorageをクリア
+      localStorage.removeItem('evaluation-items');
+      localStorage.removeItem('categories');
+      localStorage.removeItem('control-content-templates');
+      localStorage.removeItem('supplemental-info-templates');
+      // すべてのデータを再読み込み
       setItems(getEvaluationItems());
+      setCategories(getCategories());
+      setSupplementalInfoTemplates(getSupplementalInfoTemplates());
+      setControlContentTemplates(getControlContentTemplates());
+      setSelectedCategoryId(null);
+      setSidebarRefreshTrigger(prev => prev + 1);
+      alert('すべてのデータをリセットしました');
+    }
+  };
+
+  const handleImportSeedData = () => {
+    if (confirm('seedデータをインポートしますか？既存のデータはすべて削除されます。')) {
+      resetAndImportSeedData();
+      // すべてのデータを再読み込み
+      setItems(getEvaluationItems());
+      setCategories(getCategories());
+      setSupplementalInfoTemplates(getSupplementalInfoTemplates());
+      setControlContentTemplates(getControlContentTemplates());
+      setSidebarRefreshTrigger(prev => prev + 1);
+      alert('seedデータをインポートしました');
     }
   };
 
@@ -549,6 +574,7 @@ export default function Home() {
                   </h2>
                   <EvaluationItemForm
                     item={editingItem}
+                    defaultCategoryId={defaultCategoryId}
                     onSubmit={editingItem ? handleUpdate : handleCreate}
                     onCancel={handleCancel}
                   />
@@ -588,16 +614,26 @@ export default function Home() {
                     onEditSupplementalInfo={handleEditSupplementalInfo}
                     onDeleteSupplementalInfo={handleDeleteSupplementalInfo}
                   />
-                  {/* フローティング新規作成ボタン */}
+                  {/* フローティングボタン */}
                   <button
-                    onClick={handleNewClick}
-                    className="fixed bottom-8 right-8 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
-                    title="評価項目を追加"
+                    onClick={handleResetAllData}
+                    className="fixed bottom-8 right-80 px-6 py-3 bg-gray-100 dark:bg-gray-200 text-white rounded-full shadow-lg hover:bg-gray-200 dark:hover:bg-gray-100 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
+                    title="データをリセット"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    <span>評価項目を追加</span>
+                    <span className='text-gray-500'>データをリセット</span>
+                  </button>
+                  <button
+                    onClick={handleImportSeedData}
+                    className="fixed bottom-8 right-10 px-6 py-3 bg-gray-100 dark:bg-gray-200 text-white rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
+                    title="seedデータをインポート"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span className='text-gray-500'>seedデータをインポート</span>
                   </button>
                 </>
               )}
@@ -607,22 +643,32 @@ export default function Home() {
           {/* 大項目/中項目管理ビュー */}
           {viewMode === 'categories' && (
             <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   大項目/中項目
                 </h1>
-                {!showForm && (
-                  <button
-                    onClick={() => {
-                      setEditingCategory(null);
-                      setEditingSupplementalInfoTemplate(null);
-                      setShowForm(true);
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-                  >
-                    新規作成
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {!showForm && (
+                    <>
+                      <button
+                        onClick={handleImportSeedData}
+                        className="px-4 py-2 text-sm font-medium text-white bg-green-600 dark:bg-green-500 rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                      >
+                        seedデータをインポート
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingCategory(null);
+                          setEditingSupplementalInfoTemplate(null);
+                          setShowForm(true);
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-500 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                      >
+                        新規作成
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               {showForm ? (
@@ -665,7 +711,7 @@ export default function Home() {
               {showForm ? (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    {editingSupplementalInfoTemplate ? 'テンプレートを編集' : 'テンプレートを新規作成'}
+                    {editingSupplementalInfoTemplate ? 'フォームをカスタマイズ' : 'フォームをカスタマイズ'}
                   </h2>
                   <SupplementalInfoTemplateForm
                     template={editingSupplementalInfoTemplate}
@@ -699,7 +745,7 @@ export default function Home() {
               {showForm ? (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    {editingControlContentTemplate ? 'テンプレートを編集' : 'テンプレートを新規作成'}
+                    {editingControlContentTemplate ? 'フォームをカスタマイズ' : 'フォームをカスタマイズ'}
                   </h2>
                   <ControlContentTemplateForm
                     template={editingControlContentTemplate}

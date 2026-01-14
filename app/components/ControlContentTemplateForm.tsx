@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ControlContentTemplate, ControlContentFieldTemplate } from '../types/control-content-template';
 import { FieldType } from '../types/supplemental-info';
-import { DndContext, DragEndEvent, DragOverlay, closestCenter, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, DragOverlay, closestCenter, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import FieldTypePalette from './FieldTypePalette';
 import FieldCanvas from './FieldCanvas';
@@ -28,6 +28,14 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
     new Set(template?.fields?.map((_, index) => index) || [])
   );
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
     if (template) {
@@ -88,10 +96,16 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
     const { active, over } = event;
     setActiveDragId(null);
 
-    if (!over) return;
+    console.log('DragEnd Event:', { active, over }); // デバッグログ
+
+    if (!over) {
+      console.log('No over target');
+      return;
+    }
 
     // パレットからキャンバスへのドロップ
     if (active.data.current?.source === 'palette' && over.id === 'field-canvas') {
+      console.log('Dropping from palette to canvas');
       const fieldType = active.data.current.type as FieldType;
       handleAddField(fieldType);
       return;
@@ -99,6 +113,7 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
 
     // キャンバス内での並び替え
     if (active.id !== over.id && typeof active.data.current?.index === 'number' && typeof over.data.current?.index === 'number') {
+      console.log('Reordering within canvas');
       const oldIndex = active.data.current.index;
       const newIndex = over.data.current.index;
       setFields(arrayMove(fields, oldIndex, newIndex));
@@ -124,7 +139,7 @@ export default function ControlContentTemplateForm({ template, onSubmit, onCance
   };
 
   return (
-    <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* <div>
           <label htmlFor="name" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">

@@ -153,16 +153,6 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
         </div>
         <div className="space-y-1 mt-2">
           <button
-            onClick={() => onSelectView?.('supplemental-info-templates')}
-            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
-              currentView === 'supplemental-info-templates'
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-            }`}
-          >
-            評価項目の補足
-          </button>
-          <button
             onClick={() => onSelectView?.('control-content-templates')}
             className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
               currentView === 'control-content-templates'
@@ -171,6 +161,16 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
             }`}
           >
             統制内容
+          </button>
+          <button
+            onClick={() => onSelectView?.('supplemental-info-templates')}
+            className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors ${
+              currentView === 'supplemental-info-templates'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            評価項目の補足
           </button>
         </div>
       </div>

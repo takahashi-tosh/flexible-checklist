@@ -7,11 +7,12 @@ import { Category } from '../types/category';
 
 interface EvaluationItemFormProps {
   item?: EvaluationItem | null;
+  defaultCategoryId?: string;
   onSubmit: (data: { name: string; description?: string; categoryId?: string }) => void;
   onCancel: () => void;
 }
 
-export default function EvaluationItemForm({ item, onSubmit, onCancel }: EvaluationItemFormProps) {
+export default function EvaluationItemForm({ item, defaultCategoryId, onSubmit, onCancel }: EvaluationItemFormProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -29,9 +30,9 @@ export default function EvaluationItemForm({ item, onSubmit, onCancel }: Evaluat
     } else {
       setName('');
       setDescription('');
-      setCategoryId('');
+      setCategoryId(defaultCategoryId || '');
     }
-  }, [item]);
+  }, [item, defaultCategoryId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
