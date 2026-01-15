@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { EvaluationItem } from '../types/evaluation-item';
 import { getCategories, updateCategory } from '../lib/category-storage';
+import { updateEvaluationItem, getEvaluationItems } from '../lib/storage';
 import { Category } from '../types/category';
 import ControlContentList from './ControlContentList';
 import { ControlContent } from '../types/control-content';
@@ -19,10 +20,19 @@ interface EvaluationItemListProps {
   onDeleteSupplementalInfo?: (itemId: string) => void;
 }
 
-export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, onAddControlContent, onEditControlContent, onDeleteControlContent, onEditSupplementalInfo, onDeleteSupplementalInfo }: EvaluationItemListProps) {
+export default function EvaluationItemList({ items: propsItems, onEdit, onDelete, onCreate, onAddControlContent, onEditControlContent, onDeleteControlContent, onEditSupplementalInfo, onDeleteSupplementalInfo }: EvaluationItemListProps) {
+  const [items, setItems] = useState<EvaluationItem[]>(propsItems);
   const [categories, setCategories] = useState<Category[]>(() => getCategories());
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState('');
+
+  useEffect(() => {
+    setItems(propsItems);
+  }, [propsItems]);
+
+  const refreshItems = () => {
+    setItems(getEvaluationItems());
+  };
 
   const handleCategoryEdit = (categoryId: string, currentLabel: string) => {
     setEditingCategoryId(categoryId);
@@ -136,6 +146,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
                   onEditControlContent={onEditControlContent}
                   onDeleteControlContent={onDeleteControlContent}
                   onAddControlContent={onAddControlContent}
+                  onUpdateItemName={refreshItems}
                 />
               </div>
             ))}
@@ -216,8 +227,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
                     onDeleteSupplementalInfo={onDeleteSupplementalInfo}
                     onEditControlContent={onEditControlContent}
                     onDeleteControlContent={onDeleteControlContent}
-                    onAddControlContent={onAddControlContent}
-                    onCreate={onCreate}
+                    onAddControlContent={onAddControlContent}                    onRefreshItems={refreshItems}                    onCreate={onCreate}
                   />
                 ))}
               </div>
@@ -291,6 +301,7 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
                         onEditControlContent={onEditControlContent}
                         onDeleteControlContent={onDeleteControlContent}
                         onAddControlContent={onAddControlContent}
+                        onRefreshItems={refreshItems}
                         onCreate={onCreate}
                       />
                     ))}
@@ -317,6 +328,7 @@ interface ItemCardProps {
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
   onAddControlContent?: (itemId: string) => void;
   onCreate?: (categoryId?: string) => void;
+  onRefreshItems?: () => void;
 }
 
 function ItemCard({ 
@@ -329,7 +341,8 @@ function ItemCard({
   onEditControlContent,
   onDeleteControlContent,
   onAddControlContent,
-  onCreate
+  onCreate,
+  onRefreshItems
 }: ItemCardProps) {
   const [isCardHovering, setIsCardHovering] = useState(false);
 
@@ -352,6 +365,7 @@ function ItemCard({
           onEditControlContent={onEditControlContent}
           onDeleteControlContent={onDeleteControlContent}
           onAddControlContent={onAddControlContent}
+          onUpdateItemName={onRefreshItems}
         />
       </div>
       
@@ -385,6 +399,7 @@ interface ItemContentProps {
   onEditControlContent?: (itemId: string, controlContent: ControlContent) => void;
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
   onAddControlContent?: (itemId: string) => void;
+  onUpdateItemName?: (itemId: string, newName: string) => void;
 }
 
 function ItemContent({ 
@@ -396,13 +411,43 @@ function ItemContent({
   onDeleteSupplementalInfo,
   onEditControlContent,
   onDeleteControlContent,
-  onAddControlContent
+  onAddControlContent,
+  onUpdateItemName
 }: ItemContentProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isSupplementalInfoHovering, setIsSupplementalInfoHovering] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState(item.name);
+  const [isNameHovering, setIsNameHovering] = useState(false);
   const hasControlContent = item.controlContents && item.controlContents.length > 0;
   const canAddControlContent = onAddControlContent && !hasControlContent;
   const hasSupplementalInfo = item.supplementalInfo && item.supplementalInfo.fields && item.supplementalInfo.fields.length > 0;
+
+  const handleNameEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditingName(true);
+    setEditingName(item.name);
+  };
+
+  const handleNameUpdate = () => {
+    if (editingName.trim() && editingName !== item.name) {
+      const updated = updateEvaluationItem(item.id, { name: editingName.trim() });
+      if (updated && onUpdateItemName) {
+        onUpdateItemName(item.id, editingName.trim());
+      }
+    }
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleNameUpdate();
+    } else if (e.key === 'Escape') {
+      setIsEditingName(false);
+      setEditingName(item.name);
+    }
+  };
 
   return (
     <div>
@@ -433,9 +478,39 @@ function ItemContent({
                 </svg>
               </div>
             )}
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              {item.name}
-            </h3>
+            {isEditingName ? (
+              <input
+                type="text"
+                value={editingName}
+                onChange={(e) => setEditingName(e.target.value)}
+                onBlur={handleNameUpdate}
+                onKeyDown={handleNameKeyDown}
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 text-sm font-semibold px-2 py-1 border-2 border-blue-500 rounded focus:outline-none"
+                autoFocus
+              />
+            ) : (
+              <div 
+                className="flex items-center gap-1 flex-1"
+                onMouseEnter={() => setIsNameHovering(true)}
+                onMouseLeave={() => setIsNameHovering(false)}
+              >
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  {item.name}
+                </h3>
+                {isNameHovering && (
+                  <button
+                    onClick={handleNameEdit}
+                    className="p-0.5 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                    title="編集"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
             
             {/* 補足情報アイコン */}
             {hasSupplementalInfo && (
