@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { EvaluationItem } from '../types/evaluation-item';
-import { getCategories } from '../lib/category-storage';
+import { getCategories, updateCategory } from '../lib/category-storage';
 import { Category } from '../types/category';
 import ControlContentList from './ControlContentList';
 import { ControlContent } from '../types/control-content';
@@ -20,7 +20,37 @@ interface EvaluationItemListProps {
 }
 
 export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, onAddControlContent, onEditControlContent, onDeleteControlContent, onEditSupplementalInfo, onDeleteSupplementalInfo }: EvaluationItemListProps) {
-  const [categories] = useState<Category[]>(() => getCategories());
+  const [categories, setCategories] = useState<Category[]>(() => getCategories());
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingLabel, setEditingLabel] = useState('');
+
+  const handleCategoryEdit = (categoryId: string, currentLabel: string) => {
+    setEditingCategoryId(categoryId);
+    setEditingLabel(currentLabel);
+  };
+
+  const handleCategoryUpdate = (categoryId: string) => {
+    if (editingLabel.trim()) {
+      updateCategory(categoryId, { label: editingLabel.trim() });
+      setCategories(getCategories());
+      setEditingCategoryId(null);
+      setEditingLabel('');
+    }
+  };
+
+  const handleCategoryCancel = () => {
+    setEditingCategoryId(null);
+    setEditingLabel('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, categoryId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleCategoryUpdate(categoryId);
+    } else if (e.key === 'Escape') {
+      handleCategoryCancel();
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -123,10 +153,53 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
         return (
           <div key={parent.id}>
             {/* 大項目ヘッダー */}
-            <div className="mb-3 flex items-start justify-start gap-1.5 self-stretch mt-8">
-              <h2 id={`category-${parent.id}`} className="flex-1 justify-center self-stretch text-xl font-semibold leading-[1.7] tracking-wider text-body">
-                {parentIndex + 1}. {parent.label}
-              </h2>
+            <div className="mb-3 flex items-center gap-1.5 self-stretch mt-8 group">
+              {editingCategoryId === parent.id ? (
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="text"
+                    value={editingLabel}
+                    onChange={(e) => setEditingLabel(e.target.value)}
+                    onBlur={() => handleCategoryUpdate(parent.id)}
+                    onKeyDown={(e) => handleKeyDown(e, parent.id)}
+                    className="flex-1 text-xl font-semibold leading-[1.7] tracking-wider px-2 py-1 border-2 border-blue-500 rounded focus:outline-none"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => handleCategoryUpdate(parent.id)}
+                    className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                    title="保存"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleCategoryCancel}
+                    className="p-1 text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                    title="キャンセル"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <h2 id={`category-${parent.id}`} className="text-xl font-semibold leading-[1.7] tracking-wider text-body">
+                    {parentIndex + 1}. {parent.label}
+                  </h2>
+                  <button
+                    onClick={() => handleCategoryEdit(parent.id, parent.label)}
+                    className="p-1 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                    title="編集"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+                </>
+              )}
             </div>
 
             {/* 大項目に直接紐づいている評価項目 */}
@@ -157,9 +230,52 @@ export default function EvaluationItemList({ items, onEdit, onDelete, onCreate, 
               return (
                 <div key={childId} className="mb-6">
                   {/* 中項目ヘッダー */}
-                  <h3 id={`category-${childId}`} className="sticky top-13 z-10 text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 pb-1 scroll-mt-16">
-                    {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
-                  </h3>
+                  {editingCategoryId === childId ? (
+                    <div className="sticky top-13 z-10 mb-3 pb-1 scroll-mt-16 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editingLabel}
+                        onChange={(e) => setEditingLabel(e.target.value)}
+                        onBlur={() => handleCategoryUpdate(childId)}
+                        onKeyDown={(e) => handleKeyDown(e, childId)}
+                        className="flex-1 text-lg font-semibold px-2 py-1 border-2 border-blue-500 rounded focus:outline-none"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleCategoryUpdate(childId)}
+                        className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                        title="保存"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={handleCategoryCancel}
+                        className="p-1 text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded transition-colors"
+                        title="キャンセル"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="sticky top-13 z-10 mb-3 pb-1 scroll-mt-16 flex items-center gap-2 group">
+                      <h3 id={`category-${childId}`} className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                        {parentIndex + 1}.{childIndex + 1}. {childData.category.label}
+                      </h3>
+                      <button
+                        onClick={() => handleCategoryEdit(childId, childData.category.label)}
+                        className="p-1 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                        title="編集"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
 
                   {/* 評価項目リスト */}
                   <div className="space-y-8">

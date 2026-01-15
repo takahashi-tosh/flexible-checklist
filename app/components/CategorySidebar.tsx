@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Category } from '../types/category';
-import { getChildCategories, getCategories } from '../lib/category-storage';
+import { getChildCategories, getCategories, updateCategory } from '../lib/category-storage';
 
 interface CategorySidebarProps {
   selectedCategoryId: string | null;
@@ -18,6 +18,9 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
     const parents = getCategories().filter(cat => !cat.parentId);
     return new Set(parents.map(p => p.id));
   });
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingLabel, setEditingLabel] = useState('');
+  const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     // refreshTriggerが変更されたときのみカテゴリを再読み込み
@@ -28,7 +31,9 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
   const parentCategories = categories.filter(cat => !cat.parentId);
 
   const handleCategoryClick = (categoryId: string) => {
-    onSelectCategory(categoryId);
+    if (editingCategoryId !== categoryId) {
+      onSelectCategory(categoryId);
+    }
   };
 
   const handleAllClick = () => {
@@ -45,6 +50,37 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
       }
       return next;
     });
+  };
+
+  const handleCategoryEdit = (categoryId: string, currentLabel: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCategoryId(categoryId);
+    setEditingLabel(currentLabel);
+  };
+
+  const handleCategoryUpdate = (categoryId: string) => {
+    if (editingLabel.trim()) {
+      updateCategory(categoryId, { label: editingLabel.trim() });
+      setCategories(getCategories());
+      setEditingCategoryId(null);
+      setEditingLabel('');
+    }
+  };
+
+  const handleCategoryCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCategoryId(null);
+    setEditingLabel('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, categoryId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleCategoryUpdate(categoryId);
+    } else if (e.key === 'Escape') {
+      setEditingCategoryId(null);
+      setEditingLabel('');
+    }
   };
 
   return (
@@ -108,33 +144,129 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
                     <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
                 </button>
-                <div
-                  onClick={() => handleCategoryClick(parent.id)}
-                  className={`flex-1 px-2 py-1 rounded text-sm font-bold cursor-pointer transition-colors ${
-                    selectedCategoryId === parent.id
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  }`}
-                >
-                  {index + 1}. {parent.label}
-                </div>
+                {editingCategoryId === parent.id ? (
+                  <div className="flex-1 flex items-center gap-1 bg-white dark:bg-zinc-800 rounded px-1">
+                    <input
+                      type="text"
+                      value={editingLabel}
+                      onChange={(e) => setEditingLabel(e.target.value)}
+                      onBlur={() => handleCategoryUpdate(parent.id)}
+                      onKeyDown={(e) => handleKeyDown(e, parent.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-1 px-1 py-1 text-sm font-bold border-2 border-blue-500 rounded focus:outline-none"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleCategoryUpdate(parent.id)}
+                      className="p-0.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                      title="保存"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={handleCategoryCancel}
+                      className="p-0.5 text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                      title="キャンセル"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => handleCategoryClick(parent.id)}
+                    onMouseEnter={() => setHoveredCategoryId(parent.id)}
+                    onMouseLeave={() => setHoveredCategoryId(null)}
+                    className={`flex-1 flex items-center gap-1 px-2 py-1 rounded text-sm font-bold cursor-pointer transition-colors ${
+                      selectedCategoryId === parent.id
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    }`}
+                  >
+                    <span className="flex-1">
+                      {index + 1}. {parent.label}
+                    </span>
+                    {hoveredCategoryId === parent.id && (
+                      <button
+                        onClick={(e) => handleCategoryEdit(parent.id, parent.label, e)}
+                        className="p-0.5 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                        title="編集"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 中項目（子大項目/中項目） */}
               {isExpanded && children.length > 0 && (
                 <div className="ml-6 space-y-1 mt-1">
                   {children.map((child, childIndex) => (
-                    <div
-                      key={child.id}
-                      onClick={() => handleCategoryClick(child.id)}
-                      className={`px-3 py-2 rounded text-sm cursor-pointer font-bold transition-colors ${
-                        selectedCategoryId === child.id
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-500'
-                          : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                      }`}
-                    >
-                      {index + 1}.{childIndex + 1}. {child.label}
-                    </div>
+                    editingCategoryId === child.id ? (
+                      <div key={child.id} className="flex items-center gap-1 bg-white dark:bg-zinc-800 rounded px-1">
+                        <input
+                          type="text"
+                          value={editingLabel}
+                          onChange={(e) => setEditingLabel(e.target.value)}
+                          onBlur={() => handleCategoryUpdate(child.id)}
+                          onKeyDown={(e) => handleKeyDown(e, child.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 px-2 py-1.5 text-sm font-bold border-2 border-blue-500 rounded focus:outline-none"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleCategoryUpdate(child.id)}
+                          className="p-0.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                          title="保存"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={handleCategoryCancel}
+                          className="p-0.5 text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded transition-colors"
+                          title="キャンセル"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div
+                        key={child.id}
+                        onClick={() => handleCategoryClick(child.id)}
+                        onMouseEnter={() => setHoveredCategoryId(child.id)}
+                        onMouseLeave={() => setHoveredCategoryId(null)}
+                        className={`flex items-center gap-1 px-3 py-2 rounded text-sm cursor-pointer font-bold transition-colors ${
+                          selectedCategoryId === child.id
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-2 border-blue-400 dark:border-blue-500'
+                            : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        <span className="flex-1">
+                          {index + 1}.{childIndex + 1}. {child.label}
+                        </span>
+                        {hoveredCategoryId === child.id && (
+                          <button
+                            onClick={(e) => handleCategoryEdit(child.id, child.label, e)}
+                            className="p-0.5 text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                            title="編集"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    )
                   ))}
                 </div>
               )}
