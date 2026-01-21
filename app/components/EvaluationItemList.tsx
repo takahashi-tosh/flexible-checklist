@@ -67,7 +67,7 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
       <div>
         <div className="flex flex-col items-center justify-center py-12">
           <img 
-            src="/guide.svg" 
+            src="/empty-state-guide.png" 
             alt="評価項目作成ガイド" 
             className="w-full max-w-5xl"
           />
