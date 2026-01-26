@@ -4,16 +4,16 @@ import { ControlContentTemplate } from '../types/control-content-template';
 import { SupplementalInfoTemplate } from '../types/supplemental-info-template';
 
 // seedデータ用の型定義（id, createdAt, updatedAtを持たないフィールド）
-type SeedControlContentField = Omit<import('../types/control-content').ControlContentField, 'id' | 'createdAt' | 'updatedAt'>;
-type SeedControlContent = Omit<import('../types/control-content').ControlContent, 'id' | 'createdAt' | 'updatedAt' | 'fields'> & {
+export type SeedControlContentField = Omit<import('../types/control-content').ControlContentField, 'id' | 'createdAt' | 'updatedAt'>;
+export type SeedControlContent = Omit<import('../types/control-content').ControlContent, 'id' | 'createdAt' | 'updatedAt' | 'fields'> & {
   fields: SeedControlContentField[];
 };
-type SeedSupplementalInfoField = Omit<import('../types/supplemental-info').SupplementalInfoField, 'id' | 'createdAt' | 'updatedAt'>;
-type SeedSupplementalInfo = Omit<import('../types/supplemental-info').SupplementalInfo, 'fields'> & {
+export type SeedSupplementalInfoField = Omit<import('../types/supplemental-info').SupplementalInfoField, 'id' | 'createdAt' | 'updatedAt'>;
+export type SeedSupplementalInfo = Omit<import('../types/supplemental-info').SupplementalInfo, 'fields'> & {
   fields: SeedSupplementalInfoField[];
 };
-type SeedControlContentFieldTemplate = Omit<import('../types/control-content-template').ControlContentFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>;
-type SeedSupplementalInfoFieldTemplate = Omit<import('../types/supplemental-info-template').SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>;
+export type SeedControlContentTemplateField = Omit<import('../types/control-content-template').ControlContentFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>;
+export type SeedSupplementalInfoFieldTemplate = Omit<import('../types/supplemental-info-template').SupplementalInfoFieldTemplate, 'id' | 'createdAt' | 'updatedAt'>;
 
 export interface SeedData {
   evaluationItems: (Omit<EvaluationItem, 'id' | 'createdAt' | 'updatedAt' | 'controlContents' | 'supplementalInfo'> & {
@@ -23,7 +23,7 @@ export interface SeedData {
   })[];
   categories: (Omit<Category, 'id' | 'createdAt' | 'updatedAt'> & { id?: string })[];
   controlContentTemplates: (Omit<ControlContentTemplate, 'id' | 'createdAt' | 'updatedAt' | 'fields'> & {
-    fields: SeedControlContentFieldTemplate[];
+    fields: SeedControlContentTemplateField[];
   })[];
   supplementalInfoTemplates: (Omit<SupplementalInfoTemplate, 'id' | 'createdAt' | 'updatedAt' | 'fields'> & {
     fields: SeedSupplementalInfoFieldTemplate[];

@@ -2,7 +2,7 @@ import { getEvaluationItems } from './storage';
 import { getCategories } from './category-storage';
 import { getControlContentTemplates } from './control-content-template-storage';
 import { getSupplementalInfoTemplates } from './supplemental-info-template-storage';
-import { SeedData } from './seed-data';
+import { SeedData, SeedControlContentField, SeedControlContentTemplateField } from './seed-data';
 
 /**
  * 現在のlocalStorageのデータをSeedData形式に変換してエクスポートする
@@ -21,7 +21,7 @@ export function exportCurrentDataAsSeedData(): string {
       controlContents: item.controlContents?.map(cc => ({
         fields: cc.fields.map(field => {
           // 基本フィールド情報
-          const baseField: Record<string, unknown> = {
+          const baseField: Partial<SeedControlContentField> = {
             label: field.label,
             type: field.type,
           };
@@ -35,7 +35,7 @@ export function exportCurrentDataAsSeedData(): string {
             baseField.value = field.value;
           }
 
-          return baseField;
+          return baseField as SeedControlContentField;
         }),
       })),
       supplementalInfo: item.supplementalInfo ? {
@@ -57,7 +57,7 @@ export function exportCurrentDataAsSeedData(): string {
       name: template.name,
       description: template.description,
       fields: template.fields.map(field => {
-        const baseField: Record<string, unknown> = {
+        const baseField: Partial<SeedControlContentTemplateField> = {
           label: field.label,
           type: field.type,
         };
@@ -67,7 +67,7 @@ export function exportCurrentDataAsSeedData(): string {
           baseField.evaluationDefaults = field.evaluationDefaults;
         }
 
-        return baseField;
+        return baseField as SeedControlContentTemplateField;
       }),
     })),
     supplementalInfoTemplates: supplementalInfoTemplates.map(template => ({
