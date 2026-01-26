@@ -8,7 +8,7 @@ interface CategorySidebarProps {
   selectedCategoryId: string | null;
   onSelectCategory: (categoryId: string | null) => void;
   refreshTrigger?: number;
-  onSelectView?: (view: 'supplemental-info-templates' | 'control-content-templates' | 'categories') => void;
+  onSelectView?: (view: 'supplemental-info-templates' | 'control-content-templates' | 'categories' | 'data-management') => void;
   currentView?: string;
 }
 
@@ -314,6 +314,22 @@ export default function CategorySidebar({ selectedCategoryId, onSelectCategory, 
             補足情報
           </button>
         </div>
+      </div>
+
+      <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 mt-4">
+        <button
+          onClick={() => onSelectView?.('data-management')}
+          className={`w-full text-left px-3 py-2 rounded-md text-sm font-bold transition-colors flex items-center gap-2 ${
+            currentView === 'data-management'
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+              : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+          </svg>
+          データ管理
+        </button>
       </div>
     </div>
   );

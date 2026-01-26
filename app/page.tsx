@@ -17,6 +17,7 @@ import SupplementalInfoTemplateList from './components/SupplementalInfoTemplateL
 import SupplementalInfoTemplateForm from './components/SupplementalInfoTemplateForm';
 import ControlContentTemplateList from './components/ControlContentTemplateList';
 import ControlContentTemplateForm from './components/ControlContentTemplateForm';
+import { SeedDataExporter } from './components/SeedDataExporter';
 import { ControlContent } from './types/control-content';
 import { SupplementalInfo, SupplementalInfoField } from './types/supplemental-info';
 import { SupplementalInfoTemplate } from './types/supplemental-info-template';
@@ -24,7 +25,7 @@ import { ControlContentTemplate } from './types/control-content-template';
 import { getSupplementalInfoTemplates, createSupplementalInfoTemplate, updateSupplementalInfoTemplate, deleteSupplementalInfoTemplate } from './lib/supplemental-info-template-storage';
 import { getControlContentTemplates, createControlContentTemplate, updateControlContentTemplate, deleteControlContentTemplate } from './lib/control-content-template-storage';
 
-type ViewMode = 'items' | 'categories' | 'supplemental-info-templates' | 'control-content-templates';
+type ViewMode = 'items' | 'categories' | 'supplemental-info-templates' | 'control-content-templates' | 'data-management';
 
 export default function Home() {
   const [viewMode, setViewMode] = useState<ViewMode>('items');
@@ -491,6 +492,10 @@ export default function Home() {
               setEditingControlContentTemplate(null);
               setShowForm(false);
             }
+          } else if (view === 'data-management') {
+            setShowForm(false);
+            setEditingSupplementalInfoTemplate(null);
+            setEditingControlContentTemplate(null);
           }
         }}
         currentView={viewMode}
@@ -737,6 +742,43 @@ export default function Home() {
                   統制内容テンプレートがありません。新規作成してください。
                 </div>
               )}
+            </div>
+          )}
+
+          {/* データ管理ビュー */}
+          {viewMode === 'data-management' && (
+            <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 p-6 sm:p-8">
+              <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-6">
+                データ管理
+              </h1>
+              
+              <div className="space-y-6">
+                <SeedDataExporter />
+                
+                <div className="p-6 bg-white rounded-lg shadow-sm border">
+                  <h2 className="text-xl font-bold mb-4">その他の操作</h2>
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleImportSeedData}
+                      className="w-full px-4 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-left flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      サンプルデータ(FCRP)をインポート
+                    </button>
+                    <button
+                      onClick={handleResetAllData}
+                      className="w-full px-4 py-3 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-left flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      すべてのデータをリセット
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

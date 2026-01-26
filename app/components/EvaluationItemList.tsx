@@ -461,7 +461,7 @@ function ItemContent({
         )}
         <div className="flex items-center justify-between gap-2 mb-1">
           <div 
-            className={`flex items-center gap-2 flex-1 group ${canAddControlContent ? 'cursor-pointer' : ''}`}
+            className={`flex items-center gap-2 flex-2 group ${canAddControlContent ? 'cursor-pointer' : ''}`}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
             onClick={() => canAddControlContent && onAddControlContent(item.id)}
@@ -491,7 +491,7 @@ function ItemContent({
               />
             ) : (
               <div 
-                className="flex items-center gap-1 flex-1"
+                className="flex items-center"
                 onMouseEnter={() => setIsNameHovering(true)}
                 onMouseLeave={() => setIsNameHovering(false)}
               >
