@@ -44,6 +44,7 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
               label: fieldTemplate.label,
               type: fieldTemplate.type,
               evaluationValue: fieldTemplate.evaluationDefaults ? {
+                evaluationMethods: fieldTemplate.evaluationDefaults.evaluationMethods,
                 conclusion: fieldTemplate.evaluationDefaults.conclusion,
                 evaluationProcess: fieldTemplate.evaluationDefaults.evaluationProcess,
                 detectedItems: fieldTemplate.evaluationDefaults.detectedItems,
@@ -127,6 +128,7 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
             label: fieldTemplate.label,
             type: fieldTemplate.type,
             evaluationValue: fieldTemplate.evaluationDefaults ? {
+              evaluationMethods: fieldTemplate.evaluationDefaults.evaluationMethods,
               conclusion: fieldTemplate.evaluationDefaults.conclusion,
               evaluationProcess: fieldTemplate.evaluationDefaults.evaluationProcess,
               detectedItems: fieldTemplate.evaluationDefaults.detectedItems,
@@ -313,6 +315,92 @@ export default function ControlContentForm({ controlContent, onSubmit, onCancel 
 
                     {field.type === 'evaluation' && (
                       <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">評価方法</label>
+                          <div className="flex flex-wrap gap-3">
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={(field.evaluationValue?.evaluationMethods || []).includes('質問')}
+                                onChange={(e) => {
+                                  const methods = field.evaluationValue?.evaluationMethods || [];
+                                  const newMethods = e.target.checked
+                                    ? [...methods, '質問']
+                                    : methods.filter(m => m !== '質問');
+                                  handleUpdateField(index, {
+                                    evaluationValue: {
+                                      ...field.evaluationValue,
+                                      evaluationMethods: newMethods,
+                                    },
+                                  });
+                                }}
+                                className="form-checkbox h-4 w-4 text-blue-600"
+                              />
+                              <span className="ml-2 text-xs text-zinc-900 dark:text-zinc-100">質問</span>
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={(field.evaluationValue?.evaluationMethods || []).includes('閲覧')}
+                                onChange={(e) => {
+                                  const methods = field.evaluationValue?.evaluationMethods || [];
+                                  const newMethods = e.target.checked
+                                    ? [...methods, '閲覧']
+                                    : methods.filter(m => m !== '閲覧');
+                                  handleUpdateField(index, {
+                                    evaluationValue: {
+                                      ...field.evaluationValue,
+                                      evaluationMethods: newMethods,
+                                    },
+                                  });
+                                }}
+                                className="form-checkbox h-4 w-4 text-blue-600"
+                              />
+                              <span className="ml-2 text-xs text-zinc-900 dark:text-zinc-100">閲覧</span>
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={(field.evaluationValue?.evaluationMethods || []).includes('再実施')}
+                                onChange={(e) => {
+                                  const methods = field.evaluationValue?.evaluationMethods || [];
+                                  const newMethods = e.target.checked
+                                    ? [...methods, '再実施']
+                                    : methods.filter(m => m !== '再実施');
+                                  handleUpdateField(index, {
+                                    evaluationValue: {
+                                      ...field.evaluationValue,
+                                      evaluationMethods: newMethods,
+                                    },
+                                  });
+                                }}
+                                className="form-checkbox h-4 w-4 text-blue-600"
+                              />
+                              <span className="ml-2 text-xs text-zinc-900 dark:text-zinc-100">再実施</span>
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={(field.evaluationValue?.evaluationMethods || []).includes('観察')}
+                                onChange={(e) => {
+                                  const methods = field.evaluationValue?.evaluationMethods || [];
+                                  const newMethods = e.target.checked
+                                    ? [...methods, '観察']
+                                    : methods.filter(m => m !== '観察');
+                                  handleUpdateField(index, {
+                                    evaluationValue: {
+                                      ...field.evaluationValue,
+                                      evaluationMethods: newMethods,
+                                    },
+                                  });
+                                }}
+                                className="form-checkbox h-4 w-4 text-blue-600"
+                              />
+                              <span className="ml-2 text-xs text-zinc-900 dark:text-zinc-100">観察</span>
+                            </label>
+                          </div>
+                        </div>
+
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-2">結論</label>
                           <div className="flex flex-wrap gap-3">

@@ -596,27 +596,6 @@ export default function Home() {
                     onEditSupplementalInfo={handleEditSupplementalInfo}
                     onDeleteSupplementalInfo={handleDeleteSupplementalInfo}
                   />
-                  {/* フローティングボタン */}
-                  <button
-                    onClick={handleResetAllData}
-                    className="fixed bottom-8 right-90 px-6 py-3 bg-gray-100 dark:bg-gray-200 text-white rounded-full shadow-lg hover:bg-gray-200 dark:hover:bg-gray-100 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
-                    title="データをリセット"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span className='text-gray-500'>データをリセット</span>
-                  </button>
-                  <button
-                    onClick={handleImportSeedData}
-                    className="fixed bottom-8 right-10 px-6 py-3 bg-gray-100 dark:bg-gray-200 text-white rounded-full shadow-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition-all hover:scale-105 flex items-center gap-2 z-50 font-medium"
-                    title="seedデータをインポート"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="gray" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    <span className='text-gray-500'>サンプル(FCRP)をインポート</span>
-                  </button>
                 </>
               )}
             </div>

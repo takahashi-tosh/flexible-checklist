@@ -10,6 +10,7 @@ export interface ControlContentField {
   usage?: string; // 用途
   // 評価フィールドの場合の値
   evaluationValue?: {
+    evaluationMethods?: string[]; // 評価方法（質問・閲覧・再実施）
     conclusion?: ConclusionType;
     evaluationProcess?: string;
     detectedItems?: string;

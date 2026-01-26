@@ -91,6 +91,12 @@ export default function ControlContentList({ controlContents, onEdit, onDelete, 
                   )}
                   {field.type === 'evaluation' ? (
                     <div className="space-y-1">
+                      {field.evaluationValue?.evaluationMethods && field.evaluationValue.evaluationMethods.length > 0 && (
+                        <div>
+                          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">評価方法: </span>
+                          <span className="text-sm">{field.evaluationValue.evaluationMethods.join('、')}</span>
+                        </div>
+                      )}
                       {field.evaluationValue?.conclusion && (
                         <div>
                           <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">結論: </span>

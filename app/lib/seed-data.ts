@@ -39,9 +39,18 @@ export const seedData: SeedData = {
         {
           "fields": [
             {
+              "label": "規程・マニュアル等",
+              "type": "file"
+            },
+            {
+              "label": "【整備】証憑・資料",
+              "type": "file"
+            },
+            {
               "label": "整備評価",
               "type": "evaluation",
               "evaluationValue": {
+                "evaluationMethods": ["質問", "閲覧"],
                 "conclusion": "effective",
                 "evaluationProcess": "整備評価として〇〇が実施されたこと",
                 "responsiblePerson": "三点太郎",
@@ -50,9 +59,15 @@ export const seedData: SeedData = {
               }
             },
             {
+              "label": "【運用】証憑・資料",
+              "type": "file"
+            },
+            {
               "label": "運用評価",
               "type": "evaluation",
               "evaluationValue": {
+                "evaluationMethods": ["質問", "閲覧"],
+                "conclusion": "effective",
                 "responsiblePerson": "三点太郎",
                 "evaluationDate": "2026-01-01",
                 "detectedItems": "なし",
@@ -94,6 +109,14 @@ export const seedData: SeedData = {
         {
           "fields": [
             {
+              "label": "規程・マニュアル等",
+              "type": "file"
+            },
+            {
+              "label": "【整備】証憑・資料",
+              "type": "file"
+            },
+            {
               "label": "整備評価",
               "type": "evaluation",
               "evaluationValue": {
@@ -101,15 +124,15 @@ export const seedData: SeedData = {
               }
             },
             {
+              "label": "【運用】証憑・資料",
+              "type": "file"
+            },
+            {
               "label": "運用評価",
               "type": "evaluation",
               "evaluationValue": {
                 "conclusion": "effective"
               }
-            },
-            {
-              "label": "証憑",
-              "type": "file"
             }
           ]
         }
@@ -323,18 +346,26 @@ export const seedData: SeedData = {
       "name": "統制内容",
       "fields": [
         {
+          "label": "規程・マニュアル等",
+          "type": "file"
+        },
+        {
+          "label": "【整備】証憑・資料",
+          "type": "file"
+        },
+        {
           "label": "整備評価",
           "type": "evaluation",
           "evaluationDefaults": {}
         },
         {
+          "label": "【運用】証憑・資料",
+          "type": "file"
+        },
+        {
           "label": "運用評価",
           "type": "evaluation",
           "evaluationDefaults": {}
-        },
-        {
-          "label": "証憑",
-          "type": "file"
         }
       ]
     }
