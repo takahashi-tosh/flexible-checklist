@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Category } from '../types/category';
-import { getChildCategories, getCategories } from '../lib/category-storage';
+import { getChildCategories, getCategories, updateCategory } from '../lib/category-storage';
 
 interface CategoryListProps {
   categories: Category[];
@@ -12,10 +12,58 @@ interface CategoryListProps {
 
 export default function CategoryList({ categories, onEdit, onDelete }: CategoryListProps) {
   const [allCategories, setAllCategories] = useState<Category[]>(categories);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingLabel, setEditingLabel] = useState('');
 
   useEffect(() => {
     setAllCategories(getCategories());
   }, [categories]);
+
+  // 新規カテゴリ編集イベントを監視
+  useEffect(() => {
+    const handleEditNewCategory = (event: Event) => {
+      const customEvent = event as CustomEvent<{ categoryId: string }>;
+      const category = allCategories.find(c => c.id === customEvent.detail.categoryId);
+      if (category && !category.label) {
+        setEditingCategoryId(category.id);
+        setEditingLabel('');
+        // カテゴリにスクロール
+        setTimeout(() => {
+          const element = document.getElementById(`category-${category.id}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener('edit-new-category', handleEditNewCategory);
+    return () => window.removeEventListener('edit-new-category', handleEditNewCategory);
+  }, [allCategories]);
+
+  const handleCategoryUpdate = (categoryId: string) => {
+    if (editingLabel.trim()) {
+      updateCategory(categoryId, { label: editingLabel.trim() });
+      setAllCategories(getCategories());
+      onEdit({ ...allCategories.find(c => c.id === categoryId)!, label: editingLabel.trim() });
+    }
+    setEditingCategoryId(null);
+    setEditingLabel('');
+  };
+
+  const handleCategoryCancel = () => {
+    setEditingCategoryId(null);
+    setEditingLabel('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, categoryId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleCategoryUpdate(categoryId);
+    } else if (e.key === 'Escape') {
+      handleCategoryCancel();
+    }
+  };
 
   if (allCategories.length === 0) {
     return (
@@ -42,7 +90,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
         return (
           <div key={parent.id} className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
             {/* 大項目 */}
-            <div className="bg-zinc-50 dark:bg-zinc-800 p-4 border-b border-zinc-200 dark:border-zinc-700">
+            <div id={`category-${parent.id}`} className="bg-zinc-50 dark:bg-zinc-800 p-4 border-b border-zinc-200 dark:border-zinc-700">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -50,9 +98,22 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                       大項目
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                    {parent.label}
-                  </h3>
+                  {editingCategoryId === parent.id ? (
+                    <input
+                      type="text"
+                      value={editingLabel}
+                      onChange={(e) => setEditingLabel(e.target.value)}
+                      onBlur={() => handleCategoryUpdate(parent.id)}
+                      onKeyDown={(e) => handleKeyDown(e, parent.id)}
+                      className="text-lg font-semibold px-2 py-1 border-2 border-blue-500 rounded focus:outline-none w-full mb-1"
+                      autoFocus
+                      placeholder="大項目名を入力"
+                    />
+                  ) : (
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                      {parent.label}
+                    </h3>
+                  )}
                   {parent.content && (
                     <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
                       {parent.content}
@@ -60,28 +121,56 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                   )}
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <button
-                    onClick={() => onEdit(parent)}
-                    className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                    title="編集"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('この大項目と中項目をすべて削除しますか？')) {
-                        onDelete(parent.id);
-                      }
-                    }}
-                    className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    title="削除"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  {editingCategoryId === parent.id ? (
+                    <>
+                      <button
+                        onClick={() => handleCategoryUpdate(parent.id)}
+                        className="p-2 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        title="保存"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={handleCategoryCancel}
+                        className="p-2 text-zinc-600 border border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                        title="キャンセル"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          setEditingCategoryId(parent.id);
+                          setEditingLabel(parent.label);
+                        }}
+                        className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        title="編集"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('この大項目と中項目をすべて削除しますか？')) {
+                            onDelete(parent.id);
+                          }
+                        }}
+                        className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="削除"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -90,7 +179,7 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
             {children.length > 0 && (
               <div className="bg-white dark:bg-zinc-900">
                 {children.map((child) => (
-                  <div key={child.id} className="p-4 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0">
+                  <div key={child.id} id={`category-${child.id}`} className="p-4 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0">
                     <div className="flex justify-between items-start pl-6">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -98,9 +187,22 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                             中項目
                           </span>
                         </div>
-                        <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                          {child.label}
-                        </h4>
+                        {editingCategoryId === child.id ? (
+                          <input
+                            type="text"
+                            value={editingLabel}
+                            onChange={(e) => setEditingLabel(e.target.value)}
+                            onBlur={() => handleCategoryUpdate(child.id)}
+                            onKeyDown={(e) => handleKeyDown(e, child.id)}
+                            className="text-base font-semibold px-2 py-1 border-2 border-blue-500 rounded focus:outline-none w-full mb-1"
+                            autoFocus
+                            placeholder="中項目名を入力"
+                          />
+                        ) : (
+                          <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                            {child.label}
+                          </h4>
+                        )}
                         {child.content && (
                           <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
                             {child.content}
@@ -108,28 +210,56 @@ export default function CategoryList({ categories, onEdit, onDelete }: CategoryL
                         )}
                       </div>
                       <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => onEdit(child)}
-                          className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                          title="編集"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm('この大項目/中項目を削除しますか？')) {
-                              onDelete(child.id);
-                            }
-                          }}
-                          className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          title="削除"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
+                        {editingCategoryId === child.id ? (
+                          <>
+                            <button
+                              onClick={() => handleCategoryUpdate(child.id)}
+                              className="p-2 text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                              title="保存"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={handleCategoryCancel}
+                              className="p-2 text-zinc-600 border border-zinc-600 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                              title="キャンセル"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => {
+                                setEditingCategoryId(child.id);
+                                setEditingLabel(child.label);
+                              }}
+                              className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                              title="編集"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm('この大項目/中項目を削除しますか？')) {
+                                  onDelete(child.id);
+                                }
+                              }}
+                              className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                              title="削除"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

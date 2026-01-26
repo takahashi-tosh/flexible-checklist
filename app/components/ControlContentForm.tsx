@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { ControlContent, ControlContentField } from '../types/control-content';
 import { ControlContentTemplate } from '../types/control-content-template';
 import { getControlContentTemplates } from '../lib/control-content-template-storage';
-import { ConclusionType } from '../types/evaluation-object';
-import { FieldType } from '../types/supplemental-info';
 
 interface ControlContentFormProps {
   controlContent?: ControlContent | null;

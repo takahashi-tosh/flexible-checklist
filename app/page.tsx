@@ -45,7 +45,7 @@ export default function Home() {
   const [showControlContentForm, setShowControlContentForm] = useState(false);
   const [showSupplementalInfoForm, setShowSupplementalInfoForm] = useState(false);
   const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
-  const [defaultCategoryId, setDefaultCategoryId] = useState<string | undefined>(undefined);
+  const [defaultCategoryId] = useState<string | undefined>(undefined);
 
   // 補足情報ビューに切り替えたときに、テンプレートが存在する場合は自動的に編集モードで表示
   useEffect(() => {
@@ -57,6 +57,36 @@ export default function Home() {
       }
     }
   }, [viewMode, showForm, editingSupplementalInfoTemplate]);
+
+  // カテゴリ追加イベントリスナー
+  useEffect(() => {
+    const handleAddCategory = (event: Event) => {
+      const customEvent = event as CustomEvent<{ parentId?: string }>;
+      const { parentId } = customEvent.detail;
+      
+      // 空のカテゴリを直接作成
+      const newCategoryData = {
+        label: '',
+        content: undefined,
+        parentId: parentId,
+      };
+      createCategory(newCategoryData);
+      setCategories(getCategories());
+      setSidebarRefreshTrigger(prev => prev + 1);
+      
+      // 作成したカテゴリIDをイベントで通知（CategoryListでインライン編集するため）
+      const allCategories = getCategories();
+      const newCategory = allCategories[allCategories.length - 1];
+      if (newCategory) {
+        // カテゴリビューに切り替え
+        setViewMode('categories');
+        window.dispatchEvent(new CustomEvent('edit-new-category', { detail: { categoryId: newCategory.id } }));
+      }
+    };
+
+    window.addEventListener('add-category', handleAddCategory);
+    return () => window.removeEventListener('add-category', handleAddCategory);
+  }, []);
 
   // 選択された大項目/中項目の情報を取得
   const selectedCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
@@ -400,10 +430,23 @@ export default function Home() {
   };
 
   const handleNewClick = (categoryId?: string) => {
-    setEditingItem(null);
-    setEditingCategory(null);
-    setDefaultCategoryId(categoryId);
-    setShowForm(true);
+    // 空の評価項目を直接作成
+    const newItemData = {
+      name: '',
+      description: undefined,
+      categoryId: categoryId,
+    };
+    createEvaluationItem(newItemData);
+    setItems(getEvaluationItems());
+    if (categoryId) {
+      setSidebarRefreshTrigger(prev => prev + 1);
+    }
+    // 作成したアイテムIDをイベントで通知（一覧で編集モードにするため）
+    const allItems = getEvaluationItems();
+    const newItem = allItems[allItems.length - 1];
+    if (newItem) {
+      window.dispatchEvent(new CustomEvent('edit-new-item', { detail: { itemId: newItem.id } }));
+    }
   };
 
   const handleResetAllData = () => {
@@ -552,12 +595,12 @@ export default function Home() {
               {showForm ? (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    {editingItem ? '評価項目を編集' : '評価項目を新規作成'}
+                    {editingItem?.id ? '評価項目を編集' : '評価項目を新規作成'}
                   </h2>
                   <EvaluationItemForm
                     item={editingItem}
                     defaultCategoryId={defaultCategoryId}
-                    onSubmit={editingItem ? handleUpdate : handleCreate}
+                    onSubmit={editingItem?.id ? handleUpdate : handleCreate}
                     onCancel={handleCancel}
                   />
                 </div>
@@ -629,11 +672,11 @@ export default function Home() {
               {showForm ? (
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                    {editingCategory ? '大項目/中項目を編集' : '大項目/中項目を新規作成'}
+                    {editingCategory?.id ? '大項目/中項目を編集' : '大項目/中項目を新規作成'}
                   </h2>
                   <CategoryForm
                     category={editingCategory}
-                    onSubmit={editingCategory ? handleCategoryUpdate : handleCategoryCreate}
+                    onSubmit={editingCategory?.id ? handleCategoryUpdate : handleCategoryCreate}
                     onCancel={handleCancel}
                   />
                 </div>

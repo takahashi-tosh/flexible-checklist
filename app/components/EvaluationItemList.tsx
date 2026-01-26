@@ -25,10 +25,29 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
   const [categories, setCategories] = useState<Category[]>(() => getCategories());
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingLabel, setEditingLabel] = useState('');
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   useEffect(() => {
     setItems(propsItems);
   }, [propsItems]);
+
+  // 新規アイテム編集イベントを監視
+  useEffect(() => {
+    const handleEditNewItem = (event: Event) => {
+      const customEvent = event as CustomEvent<{ itemId: string }>;
+      setEditingItemId(customEvent.detail.itemId);
+      // アイテムにスクロール
+      setTimeout(() => {
+        const element = document.getElementById(`item-${customEvent.detail.itemId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    };
+
+    window.addEventListener('edit-new-item', handleEditNewItem);
+    return () => window.removeEventListener('edit-new-item', handleEditNewItem);
+  }, []);
 
   const refreshItems = () => {
     setItems(getEvaluationItems());
@@ -147,6 +166,8 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
                   onDeleteControlContent={onDeleteControlContent}
                   onAddControlContent={onAddControlContent}
                   onUpdateItemName={refreshItems}
+                  editingItemId={editingItemId}
+                  onEditingItemIdChange={setEditingItemId}
                 />
               </div>
             ))}
@@ -157,9 +178,6 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
       {/* 大項目ごとのグループ */}
       {parentCategories.map((parent, parentIndex) => {
         const group = groupedItems[parent.id];
-        const hasItems = group.uncategorizedItems.length > 0 || Object.values(group.children).some(child => child.items.length > 0);
-        
-        if (!hasItems) return null;
 
         return (
           <div key={parent.id}>
@@ -214,7 +232,7 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
             </div>
 
             {/* 大項目に直接紐づいている評価項目 */}
-            {group.uncategorizedItems.length > 0 && (
+            {group.uncategorizedItems.length > 0 ? (
               <div className="mb-6 space-y-8">
                 {group.uncategorizedItems.map((item) => (
                   <ItemCard
@@ -227,16 +245,30 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
                     onDeleteSupplementalInfo={onDeleteSupplementalInfo}
                     onEditControlContent={onEditControlContent}
                     onDeleteControlContent={onDeleteControlContent}
-                    onAddControlContent={onAddControlContent}                    onRefreshItems={refreshItems}                    onCreate={onCreate}
+                    onAddControlContent={onAddControlContent}
+                    onRefreshItems={refreshItems}
+                    onCreate={onCreate}
+                    editingItemId={editingItemId}
+                    onEditingItemIdChange={setEditingItemId}
                   />
                 ))}
               </div>
-            )}
+            ) : Object.entries(group.children).length === 0 ? (
+              <div className="text-center py-6 text-zinc-500 dark:text-zinc-400 text-sm mb-6">
+                評価項目がありません。
+                {onCreate && (
+                  <button
+                    onClick={() => onCreate(parent.id)}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline ml-1 font-medium"
+                  >
+                    追加する
+                  </button>
+                )}
+              </div>
+            ) : null}
 
             {/* 中項目ごとのグループ */}
             {Object.entries(group.children).map(([childId, childData], childIndex) => {
-              if (childData.items.length === 0) return null;
-
               return (
                 <div key={childId} className="mb-6">
                   {/* 中項目ヘッダー */}
@@ -288,24 +320,40 @@ export default function EvaluationItemList({ items: propsItems, onEdit, onDelete
                   )}
 
                   {/* 評価項目リスト */}
-                  <div className="space-y-8">
-                    {childData.items.map((item) => (
-                      <ItemCard
-                        key={item.id}
-                        item={item}
-                        categoryLabel={null}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        onEditSupplementalInfo={onEditSupplementalInfo}
-                        onDeleteSupplementalInfo={onDeleteSupplementalInfo}
-                        onEditControlContent={onEditControlContent}
-                        onDeleteControlContent={onDeleteControlContent}
-                        onAddControlContent={onAddControlContent}
-                        onRefreshItems={refreshItems}
-                        onCreate={onCreate}
-                      />
-                    ))}
-                  </div>
+                  {childData.items.length > 0 ? (
+                    <div className="space-y-8">
+                      {childData.items.map((item) => (
+                        <ItemCard
+                          key={item.id}
+                          item={item}
+                          categoryLabel={null}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onEditSupplementalInfo={onEditSupplementalInfo}
+                          onDeleteSupplementalInfo={onDeleteSupplementalInfo}
+                          onEditControlContent={onEditControlContent}
+                          onDeleteControlContent={onDeleteControlContent}
+                          onAddControlContent={onAddControlContent}
+                          onRefreshItems={refreshItems}
+                          onCreate={onCreate}
+                          editingItemId={editingItemId}
+                          onEditingItemIdChange={setEditingItemId}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-zinc-500 dark:text-zinc-400 text-sm">
+                      評価項目がありません。
+                      {onCreate && (
+                        <button
+                          onClick={() => onCreate(childId)}
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline ml-1 font-medium"
+                        >
+                          追加する
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -329,6 +377,8 @@ interface ItemCardProps {
   onAddControlContent?: (itemId: string) => void;
   onCreate?: (categoryId?: string) => void;
   onRefreshItems?: () => void;
+  editingItemId?: string | null;
+  onEditingItemIdChange?: (id: string | null) => void;
 }
 
 function ItemCard({ 
@@ -342,17 +392,49 @@ function ItemCard({
   onDeleteControlContent,
   onAddControlContent,
   onCreate,
-  onRefreshItems
+  onRefreshItems,
+  editingItemId,
+  onEditingItemIdChange
 }: ItemCardProps) {
   const [isCardHovering, setIsCardHovering] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [categories] = useState<Category[]>(() => getCategories());
+
+  // 現在のアイテムのカテゴリ情報を取得
+  const currentCategory = item.categoryId ? categories.find(c => c.id === item.categoryId) : null;
+  const parentCategory = currentCategory?.parentId ? categories.find(c => c.id === currentCategory.parentId) : currentCategory?.parentId === undefined ? currentCategory : null;
+
+  const handleAddClick = (type: 'parent' | 'child' | 'item') => {
+    setShowAddMenu(false);
+    setIsCardHovering(false);
+
+    if (type === 'parent') {
+      // 大項目を追加 - 親カテゴリがあればその下に、なければトップレベルに
+      const parentId = parentCategory?.parentId || undefined;
+      window.dispatchEvent(new CustomEvent('add-category', { detail: { parentId } }));
+    } else if (type === 'child') {
+      // 中項目を追加 - 親カテゴリの下に追加
+      const parentId = parentCategory?.id || item.categoryId;
+      window.dispatchEvent(new CustomEvent('add-category', { detail: { parentId } }));
+    } else if (type === 'item') {
+      // 評価項目を追加
+      if (onCreate) {
+        onCreate(item.categoryId);
+      }
+    }
+  };
 
   return (
     <div 
       className="relative group mb-4"
       onMouseEnter={() => setIsCardHovering(true)}
-      onMouseLeave={() => setIsCardHovering(false)}
+      onMouseLeave={() => {
+        setIsCardHovering(false);
+        setShowAddMenu(false);
+      }}
     >
       <div
+        id={`item-${item.id}`}
         className="border-b pb-3 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
       >
         <ItemContent 
@@ -366,22 +448,50 @@ function ItemCard({
           onDeleteControlContent={onDeleteControlContent}
           onAddControlContent={onAddControlContent}
           onUpdateItemName={onRefreshItems}
+          editingItemId={editingItemId}
+          onEditingItemIdChange={onEditingItemIdChange}
         />
       </div>
       
-      {/* ホバー時に表示される「評価項目を追加」ボタン */}
+      {/* ホバー時に表示される追加ボタンとメニュー */}
       {onCreate && isCardHovering && (
         <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 z-50">
-          <button
-            onClick={() => onCreate(item.categoryId)}
-            className="px-4 py-1.5 bg-gray-600 dark:bg-gray-500 text-white text-sm font-medium rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-all hover:scale-105 flex items-center gap-1.5 whitespace-nowrap"
-            title="評価項目を追加"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>評価項目を追加</span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowAddMenu(!showAddMenu)}
+              className="px-4 py-1.5 bg-gray-600 dark:bg-gray-500 text-white text-sm font-medium rounded-full shadow-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-all hover:scale-105 flex items-center gap-1.5 whitespace-nowrap"
+              title="追加"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>追加</span>
+            </button>
+            
+            {/* ドロップダウンメニュー */}
+            {showAddMenu && (
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-white dark:bg-zinc-800 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 py-1 min-w-[180px] z-[60]">
+                <button
+                  onClick={() => handleAddClick('parent')}
+                  className="w-full px-4 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  大項目を追加
+                </button>
+                <button
+                  onClick={() => handleAddClick('child')}
+                  className="w-full px-4 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  中項目を追加
+                </button>
+                <button
+                  onClick={() => handleAddClick('item')}
+                  className="w-full px-4 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  評価項目を追加
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -400,6 +510,8 @@ interface ItemContentProps {
   onDeleteControlContent?: (itemId: string, controlContentId: string) => void;
   onAddControlContent?: (itemId: string) => void;
   onUpdateItemName?: (itemId: string, newName: string) => void;
+  editingItemId?: string | null;
+  onEditingItemIdChange?: (id: string | null) => void;
 }
 
 function ItemContent({ 
@@ -412,13 +524,23 @@ function ItemContent({
   onEditControlContent,
   onDeleteControlContent,
   onAddControlContent,
-  onUpdateItemName
+  onUpdateItemName,
+  editingItemId,
+  onEditingItemIdChange
 }: ItemContentProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isSupplementalInfoHovering, setIsSupplementalInfoHovering] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState(item.name);
   const [isNameHovering, setIsNameHovering] = useState(false);
+
+  // 新規作成時に自動的に編集モードに入る
+  useEffect(() => {
+    if (editingItemId === item.id && !item.name) {
+      setIsEditingName(true);
+      setEditingName('');
+    }
+  }, [editingItemId, item.id, item.name]);
   const hasControlContent = item.controlContents && item.controlContents.length > 0;
   const canAddControlContent = onAddControlContent && !hasControlContent;
   const hasSupplementalInfo = item.supplementalInfo && item.supplementalInfo.fields && item.supplementalInfo.fields.length > 0;
@@ -437,6 +559,9 @@ function ItemContent({
       }
     }
     setIsEditingName(false);
+    if (onEditingItemIdChange) {
+      onEditingItemIdChange(null);
+    }
   };
 
   const handleNameKeyDown = (e: React.KeyboardEvent) => {

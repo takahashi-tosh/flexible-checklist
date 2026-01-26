@@ -21,7 +21,7 @@ export function exportCurrentDataAsSeedData(): string {
       controlContents: item.controlContents?.map(cc => ({
         fields: cc.fields.map(field => {
           // 基本フィールド情報
-          const baseField: any = {
+          const baseField: Record<string, unknown> = {
             label: field.label,
             type: field.type,
           };
@@ -31,8 +31,8 @@ export function exportCurrentDataAsSeedData(): string {
             baseField.value = field.value;
           } else if (field.type === 'evaluation' && field.evaluationValue !== undefined) {
             baseField.evaluationValue = field.evaluationValue;
-          } else if (field.type === 'file' && field.fileValue !== undefined) {
-            baseField.fileValue = field.fileValue;
+          } else if (field.type === 'file' && field.value !== undefined) {
+            baseField.value = field.value;
           }
 
           return baseField;
@@ -44,6 +44,8 @@ export function exportCurrentDataAsSeedData(): string {
           type: field.type,
           value: field.value,
         })),
+        createdAt: item.supplementalInfo.createdAt,
+        updatedAt: item.supplementalInfo.updatedAt,
       } : undefined,
     })),
     categories: categories.map(cat => ({
@@ -55,7 +57,7 @@ export function exportCurrentDataAsSeedData(): string {
       name: template.name,
       description: template.description,
       fields: template.fields.map(field => {
-        const baseField: any = {
+        const baseField: Record<string, unknown> = {
           label: field.label,
           type: field.type,
         };
