@@ -1,4 +1,4 @@
-import { seedData } from './seed-data';
+import { seedData, SeedData } from './seed-data';
 import { saveEvaluationItems } from './storage';
 import { saveCategories } from './category-storage';
 import { saveControlContentTemplates } from './control-content-template-storage';
@@ -9,14 +9,14 @@ import { ControlContentTemplate } from '../types/control-content-template';
 import { SupplementalInfoTemplate } from '../types/supplemental-info-template';
 
 /**
- * seedデータをインポートして、localStorageに保存する
+ * seedデータをインポートして、localStorageに保存する（汎用版）
  */
-export function importSeedData(): void {
+export function importSeedDataFromObject(data: SeedData): void {
   const now = new Date().toISOString();
   
   // カテゴリのインポート（IDマッピングを作成）
   const categoryIdMap = new Map<string, string>();
-  const categories: Category[] = seedData.categories.map(cat => {
+  const categories: Category[] = data.categories.map(cat => {
     const existingId = cat.id; // seedデータに既存IDがある場合
     const newId = existingId || crypto.randomUUID();
     
@@ -47,7 +47,7 @@ export function importSeedData(): void {
   saveCategories(updatedCategories);
   
   // 統制内容テンプレートのインポート
-  const controlContentTemplates: ControlContentTemplate[] = seedData.controlContentTemplates.map(template => ({
+  const controlContentTemplates: ControlContentTemplate[] = data.controlContentTemplates.map(template => ({
     ...template,
     id: crypto.randomUUID(),
     fields: template.fields.map(field => ({
@@ -63,7 +63,7 @@ export function importSeedData(): void {
   saveControlContentTemplates(controlContentTemplates);
   
   // 補足情報テンプレートのインポート
-  const supplementalInfoTemplates: SupplementalInfoTemplate[] = seedData.supplementalInfoTemplates.map(template => ({
+  const supplementalInfoTemplates: SupplementalInfoTemplate[] = data.supplementalInfoTemplates.map(template => ({
     ...template,
     id: crypto.randomUUID(),
     fields: template.fields.map(field => ({
@@ -79,7 +79,7 @@ export function importSeedData(): void {
   saveSupplementalInfoTemplates(supplementalInfoTemplates);
   
   // 評価項目のインポート（categoryIdを新しいIDに置き換え）
-  const evaluationItems: EvaluationItem[] = seedData.evaluationItems.map(item => {
+  const evaluationItems: EvaluationItem[] = data.evaluationItems.map(item => {
     const newCategoryId = item.categoryId && categoryIdMap.has(item.categoryId) 
       ? categoryIdMap.get(item.categoryId)
       : item.categoryId;
@@ -118,6 +118,50 @@ export function importSeedData(): void {
 }
 
 /**
+ * seedデータをインポートして、localStorageに保存する（seed-data.tsから）
+ */
+export function importSeedData(): void {
+  importSeedDataFromObject(seedData);
+}
+
+/**
+ * JSON文字列からseedデータをインポートして、localStorageに保存する
+ * @param jsonString JSON文字列
+ * @throws {Error} JSONのパースエラーまたはデータ形式エラー
+ */
+export function importSeedDataFromJson(jsonString: string): void {
+  try {
+    const parsed = JSON.parse(jsonString);
+    
+    // 基本的なバリデーション
+    if (!parsed || typeof parsed !== 'object') {
+      throw new Error('無効なJSON形式です');
+    }
+    
+    // SeedData型の基本的な構造チェック
+    if (!Array.isArray(parsed.evaluationItems)) {
+      throw new Error('evaluationItemsが配列ではありません');
+    }
+    if (!Array.isArray(parsed.categories)) {
+      throw new Error('categoriesが配列ではありません');
+    }
+    if (!Array.isArray(parsed.controlContentTemplates)) {
+      throw new Error('controlContentTemplatesが配列ではありません');
+    }
+    if (!Array.isArray(parsed.supplementalInfoTemplates)) {
+      throw new Error('supplementalInfoTemplatesが配列ではありません');
+    }
+    
+    importSeedDataFromObject(parsed as SeedData);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`JSONのパースエラー: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+/**
  * 現在のデータをすべてクリアする
  */
 export function clearAllData(): void {
@@ -137,4 +181,14 @@ export function clearAllData(): void {
 export function resetAndImportSeedData(): void {
   clearAllData();
   importSeedData();
+}
+
+/**
+ * JSON文字列からseedデータをクリアしてからインポートする
+ * @param jsonString JSON文字列
+ * @throws {Error} JSONのパースエラーまたはデータ形式エラー
+ */
+export function resetAndImportSeedDataFromJson(jsonString: string): void {
+  clearAllData();
+  importSeedDataFromJson(jsonString);
 }
