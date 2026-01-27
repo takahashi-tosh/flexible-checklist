@@ -20,28 +20,25 @@ export default function ControlContentList({ controlContents, onEdit, onDelete, 
     );
   }
 
-  // 1. ヘッダーと幅の計算（最初のデータに基づき計算、または固定の定義が必要）
   // すべての行でフィールド構成が同じであることを前提としています
   const sampleFields = controlContents[0].fields || [];
-  const calculateWidth = (type: string) => {
-    if (type === 'evaluation') return 300;
-    if (type === 'file') return 200;
-    return 450;
-  };
 
-  const actionColumnWidth = 100; // 操作列の幅
-  const tableWidth = sampleFields.reduce((sum, field) => sum + calculateWidth(field.type), 0) + actionColumnWidth;
+  // カラムの最小幅を計算（コンテンツに応じて自動調整されるが、最小幅を保証）
+  const getMinWidth = (type: string) => {
+    if (type === 'evaluation') return 'min-w-[300px]';
+    if (type === 'file') return 'min-w-[200px]';
+    return 'min-w-[250px]';
+  };
 
   return (
     <div className="bg-white dark:bg-zinc-900 overflow-x-auto">
-      <table className="w-full table-fixed border-collapse" style={{ minWidth: `${tableWidth}px` }}>
+      <table className="w-full table-auto border-collapse">
         <thead>
           <tr className="bg-zinc-100 dark:bg-zinc-800">
             {sampleFields.map((field, index) => (
               <th
                 key={field.id}
-                className="px-4 py-2 text-left text-xs font-medium text-zinc-700 dark:text-zinc-300 border-b border-zinc-200 dark:border-zinc-700"
-                style={{ width: `${calculateWidth(field.type)}px` }}
+                className={`px-4 py-2 text-left text-xs font-medium text-zinc-700 dark:text-zinc-300 border-b border-zinc-200 dark:border-zinc-700 ${getMinWidth(field.type)}`}
               >
                 {index === 0 ? (
                   <span className="flex items-center gap-1.5">
@@ -54,7 +51,7 @@ export default function ControlContentList({ controlContents, onEdit, onDelete, 
               </th>
             ))}
             {/* 操作列のヘッダー */}
-            <th className="px-4 py-2 text-right text-xs font-medium text-zinc-700 dark:text-zinc-300 border-b border-zinc-200 dark:border-zinc-700" style={{ width: `${actionColumnWidth}px` }}>
+            <th className="px-4 py-2 text-right text-xs font-medium text-zinc-700 dark:text-zinc-300 border-b border-zinc-200 dark:border-zinc-700 min-w-[100px] w-[100px]">
               操作
             </th>
           </tr>
@@ -73,22 +70,6 @@ export default function ControlContentList({ controlContents, onEdit, onDelete, 
                   key={field.id}
                   className="px-4 py-4 text-sm text-zinc-900 dark:text-zinc-100 align-top relative"
                 >
-                  {fieldIndex === 0 && onAdd && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onAdd();
-                      }}
-                      className={`absolute left-2 top-1/2 -translate-y-1/2 -translate-x-1/2 p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm ${
-                        hoveredRowId === controlContent.id ? 'opacity-100' : 'opacity-0'
-                      }`}
-                      title="統制内容を追加"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  )}
                   {field.type === 'evaluation' ? (
                     <div className="space-y-1">
                       {field.evaluationValue?.evaluationMethods && field.evaluationValue.evaluationMethods.length > 0 && (

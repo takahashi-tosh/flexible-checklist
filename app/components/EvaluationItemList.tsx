@@ -404,7 +404,7 @@ function ItemCard({
   const currentCategory = item.categoryId ? categories.find(c => c.id === item.categoryId) : null;
   const parentCategory = currentCategory?.parentId ? categories.find(c => c.id === currentCategory.parentId) : currentCategory?.parentId === undefined ? currentCategory : null;
 
-  const handleAddClick = (type: 'parent' | 'child' | 'item') => {
+  const handleAddClick = (type: 'parent' | 'child' | 'item' | 'controlContent') => {
     setShowAddMenu(false);
     setIsCardHovering(false);
 
@@ -420,6 +420,11 @@ function ItemCard({
       // 評価項目を追加
       if (onCreate) {
         onCreate(item.categoryId);
+      }
+    } else if (type === 'controlContent') {
+      // 統制内容を追加
+      if (onAddControlContent) {
+        onAddControlContent(item.id);
       }
     }
   };
@@ -489,6 +494,14 @@ function ItemCard({
                 >
                   評価項目を追加
                 </button>
+                {onAddControlContent && (
+                  <button
+                    onClick={() => handleAddClick('controlContent')}
+                    className="w-full px-4 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    統制内容を追加
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -528,7 +541,6 @@ function ItemContent({
   editingItemId,
   onEditingItemIdChange
 }: ItemContentProps) {
-  const [isHovering, setIsHovering] = useState(false);
   const [isSupplementalInfoHovering, setIsSupplementalInfoHovering] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState(item.name);
@@ -541,8 +553,6 @@ function ItemContent({
       setEditingName('');
     }
   }, [editingItemId, item.id, item.name]);
-  const hasControlContent = item.controlContents && item.controlContents.length > 0;
-  const canAddControlContent = onAddControlContent && !hasControlContent;
   const hasSupplementalInfo = item.supplementalInfo && item.supplementalInfo.fields && item.supplementalInfo.fields.length > 0;
 
   const handleNameEdit = (e: React.MouseEvent) => {
@@ -586,23 +596,8 @@ function ItemContent({
         )}
         <div className="flex items-center justify-between gap-2 mb-1">
           <div 
-            className={`flex items-center gap-2 flex-2 group ${canAddControlContent ? 'cursor-pointer' : ''}`}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
-            onClick={() => canAddControlContent && onAddControlContent(item.id)}
+            className="flex items-center gap-2 flex-2 group"
           >
-            {canAddControlContent && (
-              <div
-                className={`shrink-0 p-1 text-blue-600 dark:text-blue-400 rounded transition-all ${
-                  isHovering ? 'opacity-100' : 'opacity-0'
-                }`}
-                title="統制内容を追加"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-            )}
             {isEditingName ? (
               <input
                 type="text"
